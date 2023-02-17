@@ -3,6 +3,10 @@
 out: calc case_all
 	./calc < case_all > out
 case_all: casegen.c
+	make case_add
+	make case_sub
+	make case_mul
+	make case_div
 	cat case_add >> case_all
 	cat case_sub >> case_all
 	cat case_mul >> case_all
