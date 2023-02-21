@@ -1,5 +1,4 @@
 #include <blib.h>
-
 const char *s[] = {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
 	     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
