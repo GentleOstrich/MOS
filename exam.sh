@@ -1,11 +1,4 @@
 #!/bin/bash
-mkdir gen
-a=1
-while [$a -le 10]
-do
-	touch ./gen/$a.txt
-	a=$[$a+1]
-done
 mkdir mydir
 chmod +rwx mydir
 touch myfile
