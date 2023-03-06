@@ -1,4 +1,3 @@
-#!/bin/bash
 mkdir mydir
 chmod +rwx mydir
 touch myfile
