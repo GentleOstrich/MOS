@@ -33,6 +33,7 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 		/* check "are we hitting the end?" */
 		/* Exercise 1.4: Your code here. (3/8) */
 		if (*fmt == '\0') {
+			fmt--;
 			break;
 		}
 		/* we found a '%' */
@@ -86,7 +87,13 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 			 * others. (hint: 'neg_flag').
 			 */
 			/* Exercise 1.4: Your code here. (8/8) */
-			print_num(out, data, num, 10, neg_flag, width, ladjust, padc, 0);
+			if (num < 0) {
+				neg_flag = 1;
+				num = -num;
+				print_num(out, data, num, 10, neg_flag, width, ladjust, padc, 0);
+			} else {
+				print_num(out, data, num, 10, neg_flag, width, ladjust, padc, 0);
+			}
 			break;
 
 		case 'o':
