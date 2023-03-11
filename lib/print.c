@@ -24,21 +24,20 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 		neg_flag = 0;
 		ladjust = 0;
 		padc = ' ';
-		while (*fmt != '%') {
+		while (*fmt != '%' && *fmt != '\0') {
 		/* flush the string found so far */
 		/* Exercise 1.4: Your code here. (2/8) */
 			out(data, fmt, 1);
-		/* check "are we hitting the end?" */
-		/* Exercise 1.4: Your code here. (3/8) */
-			if (*fmt == '\0') {
-				fmt--;
-				break;
-			}
-		/* we found a '%' */
-		/* Exercise 1.4: Your code here. (4/8) */
 			fmt++;
 		}
-		fmt++;
+		/* check "are we hitting the end?" */
+		/* Exercise 1.4: Your code here. (3/8) */
+		if (*fmt == '\0') {
+			break;
+		}
+		/* we found a '%' */
+		/* Exercise 1.4: Your code here. (4/8) */
+		if (*fmt == '%') fmt++;
 		/* check format flag */
 		/* Exercise 1.4: Your code here. (5/8) */
 		if (*fmt == '-') {
