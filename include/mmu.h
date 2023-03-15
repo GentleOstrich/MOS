@@ -133,7 +133,7 @@ typedef u_long Pte;
 // translates from physical address to kernel virtual address
 #define KADDR(pa)                                                                                  \
 	({                                                                                         \
-		u_long ppn = PPN(pa);                                                              \
+		u_long ppn = PPN(pa); /*pa右移十二位*/                                                              \
 		if (ppn >= npage) {                                                                \
 			panic("KADDR called with invalid pa %08lx", (u_long)pa);                   \
 		}                                                                                  \
