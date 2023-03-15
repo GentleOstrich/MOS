@@ -94,17 +94,20 @@ void page_init(void) {
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	/* Exercise 2.3: Your code here. (2/4) */
 	freemem = ROUND(freemem, BY2PG);
-	u_long page_index = PADDR(freemem)/BY2PG; // 转换成实地址再转换成page下标
+	struct Page *p = pa2page(PADDR(freemem)); //freemem是虚拟地址，PADDR先将其转换成物理地址，然后pa2page转换成对应的页表指针
+	int i = 0;
+	while (i < npage) {
+		if ((pages + i) < p) {
 	/* Step 3: Mark all memory below `freemem` as used (set `pp_ref` to 1) */
 	/* Exercise 2.3: Your code here. (3/4) */
-	for (u_long i = 0; i < page_index; ++i) {
-		pages[i].pp_ref = 1;
-	}
+			(*(pages + i)).pp_ref = 1;
+		} else {
 	/* Step 4: Mark the other memory as free. */
 	/* Exercise 2.3: Your code here. (4/4) */
-	for (u_long i = page_index; i < npage; ++i) {
-		pages[i].pp_ref = 0;
-		LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
+			(*(pages + i)).pp_ref = 0;
+			LIST_INSERT_HEAD(&page_free_list, (pages + i), pp_link);
+		}
+		i++;
 	}
 }
 
@@ -134,7 +137,7 @@ int page_alloc(struct Page **new) {
 	/* Step 2: Initialize this page with zero.
 	 * Hint: use `memset`. */
 	/* Exercise 2.4: Your code here. (2/2) */
-	memset((void *)page2kva(pp), 0, sizeof(struct Page));
+	memset((void *)page2kva(pp), 0, 4096);
 	*new = pp;
 	return 0;
 }
