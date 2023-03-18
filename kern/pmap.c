@@ -94,7 +94,7 @@ void page_init(void) {
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	/* Exercise 2.3: Your code here. (2/4) */
 	freemem = ROUND(freemem, BY2PG);
-	struct Page *p = pa2page(PADDR(freemem)); //freemem是虚拟地址，PADDR先将其转换成物理地址，然后pa2page转换成对应的页表指针
+	struct Page *p = pa2page(PADDR(freemem)); // freemem是虚拟地址，PADDR先将其转换成物理地址，然后pa2page转换成对应的页表指针
 	int i = 0;
 	while (i < npage) {
 		if ((pages + i) < p) {
@@ -131,7 +131,6 @@ int page_alloc(struct Page **new) {
 	if (LIST_EMPTY(&page_free_list)) {
 		return -E_NO_MEM;
 	}
-	
 	pp = (LIST_FIRST(&page_free_list));
 	LIST_REMOVE(pp, pp_link);
 	/* Step 2: Initialize this page with zero.
@@ -174,19 +173,32 @@ void page_free(struct Page *pp) {
 static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	Pde *pgdir_entryp;
 	struct Page *pp;
-
 	/* Step 1: Get the corresponding page directory entry. */
 	/* Exercise 2.6: Your code here. (1/3) */
-
+	pgdir_entryp = pgdir + PDX(va); // 一级页表项
 	/* Step 2: If the corresponding page table is not existent (valid) and parameter `create`
 	 * is set, create one. Set the permission bits 'PTE_D | PTE_V' for this new page in the
 	 * page directory.
 	 * If failed to allocate a new page (out of memory), return the error. */
 	/* Exercise 2.6: Your code here. (2/3) */
-
+	if ((*pgdir_entryp & PTE_V) == 0x0) {
+		if (create) {
+			if (page_alloc(&pp) != 0) { // out of memory
+				*ppte = NULL;
+				return -E_NO_MEM;
+			} else {
+				pp->pp_ref++;
+				*pgdir_entryp = (page2pa(pp)) | PTE_D | PTE_V;
+			}
+		} else {
+			*ppte = NULL;
+			return 0;
+		}
+	}
 	/* Step 3: Assign the kernel virtual address of the page table entry to '*ppte'. */
 	/* Exercise 2.6: Your code here. (3/3) */
-
+	*ppte = ((Pte *)KADDR(PTE_ADDR(*pgdir_entryp))) + PTX(va);
+	
 	return 0;
 }
 
@@ -207,7 +219,7 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 
 	/* Step 1: Get corresponding page table entry. */
 	pgdir_walk(pgdir, va, 0, &pte);
-
+	
 	if (pte && (*pte & PTE_V)) {
 		if (pa2page(*pte) != pp) {
 			page_remove(pgdir, asid, va);
@@ -217,18 +229,26 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 			return 0;
 		}
 	}
-
+	
 	/* Step 2: Flush TLB with 'tlb_invalidate'. */
 	/* Exercise 2.7: Your code here. (1/3) */
-
+	tlb_invalidate(asid, va);
+	
 	/* Step 3: Re-get or create the page table entry. */
 	/* If failed to create, return the error. */
 	/* Exercise 2.7: Your code here. (2/3) */
-
+	int ret;
+	if ((ret = pgdir_walk(pgdir, va, 1, &pte)) != 0) {
+		return ret;
+	}
+	
 	/* Step 4: Insert the page to the page table entry with 'perm | PTE_V' and increase its
 	 * 'pp_ref'. */
 	/* Exercise 2.7: Your code here. (3/3) */
-
+	*pte = (page2pa(pp)) | perm | PTE_V;
+	
+	pp->pp_ref++;
+	
 	return 0;
 }
 
@@ -243,7 +263,7 @@ struct Page *page_lookup(Pde *pgdir, u_long va, Pte **ppte) {
 
 	/* Step 1: Get the page table entry. */
 	pgdir_walk(pgdir, va, 0, &pte);
-
+	
 	/* Hint: Check if the page table entry doesn't exist or is not valid. */
 	if (pte == NULL || (*pte & PTE_V) == 0) {
 		return NULL;
@@ -251,7 +271,10 @@ struct Page *page_lookup(Pde *pgdir, u_long va, Pte **ppte) {
 
 	/* Step 2: Get the corresponding Page struct. */
 	/* Hint: Use function `pa2page`, defined in include/pmap.h . */
+	
 	pp = pa2page(*pte);
+	
+
 	if (ppte) {
 		*ppte = pte;
 	}
@@ -389,10 +412,11 @@ void physical_memory_manage_check(void) {
 }
 
 void page_check(void) {
+	
 	Pde *boot_pgdir = alloc(BY2PG, BY2PG, 1);
 	struct Page *pp, *pp0, *pp1, *pp2;
 	struct Page_list fl;
-
+	
 	// should be able to allocate three pages
 	pp0 = pp1 = pp2 = 0;
 	assert(page_alloc(&pp0) == 0);
@@ -402,7 +426,7 @@ void page_check(void) {
 	assert(pp0);
 	assert(pp1 && pp1 != pp0);
 	assert(pp2 && pp2 != pp1 && pp2 != pp0);
-
+	
 	// temporarily steal the rest of the free pages
 	fl = page_free_list;
 	// now this page_free list must be empty!!!!
@@ -410,10 +434,10 @@ void page_check(void) {
 
 	// should be no free memory
 	assert(page_alloc(&pp) == -E_NO_MEM);
-
+	
 	// there is no free memory, so we can't allocate a page table
 	assert(page_insert(boot_pgdir, 0, pp1, 0x0, 0) < 0);
-
+	
 	// free pp0 and try again: pp0 should be used for page table
 	page_free(pp0);
 	assert(page_insert(boot_pgdir, 0, pp1, 0x0, 0) == 0);

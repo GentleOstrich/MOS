@@ -26,13 +26,14 @@ void tlb_refill_check(void) {
 
 	extern void do_tlb_refill(void);
 	extern Pte _do_tlb_refill(u_long va, u_int asid);
-
+	
 	Pte *walk_pte;
+	
 	Pte ret_pte = _do_tlb_refill(BY2PG, 0);
+	
 	assert(page_lookup(boot_pgdir, BY2PG, &walk_pte) != NULL);
 	assert(ret_pte == *walk_pte);
 	assert(page2pa(pp2) == va2pa(boot_pgdir, BY2PG));
-
 	printk("test point 1 ok\n");
 
 	page_free(pp4);

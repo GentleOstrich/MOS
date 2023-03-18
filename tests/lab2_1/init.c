@@ -87,9 +87,9 @@ void physical_memory_manage_strong_check(void) {
 
 void mips_init() {
 	printk("init.c:\tmips_init() is called\n");
-	mips_detect_memory();
-	mips_vm_init();
-	page_init();
+	mips_detect_memory(); // 探测可用内存，初始化内存管理相关变量
+	mips_vm_init(); // 建立一些用于管理的数据结构
+	page_init(); // 初始化Pages结构体以及空闲链表
 
 	physical_memory_manage_check();
 	physical_memory_manage_strong_check();

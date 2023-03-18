@@ -2,7 +2,7 @@ void page_strong_check(void) {
 	Pde *boot_pgdir = alloc(BY2PG, BY2PG, 1);
 	struct Page *pp, *pp0, *pp1, *pp2, *pp3, *pp4;
 	struct Page_list fl;
-
+	
 	// should be able to allocate three pages
 	pp0 = pp1 = pp2 = pp3 = pp4 = 0;
 	assert(page_alloc(&pp0) == 0);
@@ -27,7 +27,7 @@ void page_strong_check(void) {
 
 	// should be no free memory
 	assert(page_alloc(&pp) == -E_NO_MEM);
-
+	
 	// free pp0 and try again: pp0 should be used for page table
 	page_free(pp0);
 	// check if PTE != PP
@@ -130,12 +130,18 @@ void page_strong_check(void) {
 
 void mips_init() {
 	printk("init.c:\tmips_init() is called\n");
-
+	
 	mips_detect_memory();
+	
 	mips_vm_init();
+	
 	page_init();
-
+	
+	
 	page_check();
+	
+	
 	page_strong_check();
+
 	halt();
 }
