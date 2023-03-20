@@ -106,12 +106,12 @@ void out ( void *data, const char *buf, size_t len) {
 }
 
 int sprintf(char *buf, const char *fmt, ...) {	
-	int cnt = 0;
+	size_t cnt = 0;
 	va_list ap;
 	va_start(ap, fmt);
 	buf[0] = '\0';
 	vprintfmt(out, ((void *)buf), fmt, ap );
-	va_end(ap);
+	cnt = strlen(buf);
 	return cnt;
 }
 
