@@ -9,10 +9,13 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 	char c;
 	const char *s;
 	long num;
-
+	long num1;
+	long num2;
 	int width;
 	int long_flag; // output is long (rather than int)
 	int neg_flag;  // output is negative
+	int neg_flag1;
+	int neg_flag2;
 	int ladjust;   // output is left-aligned
 	char padc;     // padding char
 
@@ -68,7 +71,39 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 		}
 
 		neg_flag = 0;
+		neg_flag1 = 0;
+		neg_flag2 = 0;
 		switch (*fmt) {
+		case 'R':
+			if (long_flag) {
+				num1 = va_arg(ap, long int);
+				num2 = va_arg(ap, long int);
+			} else {
+				num1 = va_arg(ap, int);
+				num2 = va_arg(ap, int);
+			}
+			out(data, "(", 1);
+			if (num1 < 0) {
+				neg_flag1 = 1;
+				num1 = -num1;
+			}
+
+			print_num(out, data, num1, 10, neg_flag1, width, ladjust, padc, 0);
+			out(data, ",", 1);
+
+			if (num2 < 0) {
+				neg_flag2 = 1;
+				num2 = -num2;
+			}
+
+			print_num(out, data, num2, 10, neg_flag2, width, ladjust, padc, 0);
+
+
+			out(data, ")", 1);
+			
+			
+
+			break;
 		case 'b':
 			if (long_flag) {
 				num = va_arg(ap, long int);
