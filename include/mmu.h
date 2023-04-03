@@ -3,17 +3,17 @@
 
 #include <error.h>
 
-#define BY2PG 4096		// bytes to a page
-#define PDMAP (4 * 1024 * 1024) // bytes mapped by a page directory entry
+#define BY2PG 4096		// bytes to a page 一页的大小
+#define PDMAP (4 * 1024 * 1024) // bytes mapped by a page directory entry 
 #define PGSHIFT 12
 #define PDSHIFT 22 // log2(PDMAP)
-#define PDX(va) ((((u_long)(va)) >> 22) & 0x03FF)
-#define PTX(va) ((((u_long)(va)) >> 12) & 0x03FF)
-#define PTE_ADDR(pte) ((u_long)(pte) & ~0xFFF)
+#define PDX(va) ((((u_long)(va)) >> 22) & 0x03FF) // 虚地址的一级页表偏移量
+#define PTX(va) ((((u_long)(va)) >> 12) & 0x03FF) // 虚地址的二级页表偏移量
+#define PTE_ADDR(pte) ((u_long)(pte) & ~0xFFF) // 二级页表de物理地址
 
 // Page number field of an address
-#define PPN(va) (((u_long)(va)) >> 12)
-#define VPN(va) (((u_long)(va)) >> 12)
+#define PPN(va) (((u_long)(va)) >> 12) // 哪里用过？？
+#define VPN(va) (((u_long)(va)) >> 12) // 哪里用过？？
 
 /* Page Table/Directory Entry flags */
 
@@ -22,11 +22,11 @@
 #define PTE_G 0x0100
 
 // Valid bit. If 0 any address matching this entry will cause a tlb miss exception (TLBL/TLBS).
-#define PTE_V 0x0200
+#define PTE_V 0x0200 // 有效位，为1，高20位对应物理页号
 
 // Dirty bit, but really a write-enable bit. 1 to allow writes, 0 and any store using this
 // translation will cause a tlb mod exception (TLB Mod).
-#define PTE_D 0x0400
+#define PTE_D 0x0400 // 可写位，为1，可由该页表项对物理页进行写操作
 
 // Uncacheable bit. 0 to make the access cacheable, 1 for uncacheable.
 #define PTE_N 0x0800
@@ -121,7 +121,7 @@ extern u_long npage;
 
 typedef u_long Pde;
 typedef u_long Pte;
-
+// 虚地址转化为实地址
 #define PADDR(kva)                                                                                 \
 	({                                                                                         \
 		u_long a = (u_long)(kva);                                                          \
@@ -130,7 +130,7 @@ typedef u_long Pte;
 		a - ULIM;                                                                          \
 	})
 
-// translates from physical address to kernel virtual address
+// translates from physical address to kernel virtual address 实地址转化为虚地址
 #define KADDR(pa)                                                                                  \
 	({                                                                                         \
 		u_long ppn = PPN(pa); /*pa右移十二位*/                                                              \
