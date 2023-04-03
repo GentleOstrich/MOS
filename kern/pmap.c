@@ -20,11 +20,11 @@ u_int page_perm_stat(Pde *pgdir, struct Page *pp, u_int perm_mask) {
 	Pde *pgdir_entryp = pgdir;
 	int j = 0;	
 	while (j < 1024) {
-		if ((*pgdir_entryp & PTE_V) != 0 ) {
+		if (((*pgdir_entryp) & PTE_V) != 0 ) {
 			Pte *pte = ((Pte*) KADDR(PTE_ADDR(*pgdir_entryp)));
 			int i = 0;
 			while (i < 1024) {
-				if ((*pte & PTE_V) != 0 ) {
+				if (((*pte) & PTE_V) != 0 ) {
 					u_long a = (*pte) >> 12 << 12;
 					
 					if (a == page2pa(pp)) {
