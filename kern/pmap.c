@@ -25,9 +25,9 @@ u_int page_perm_stat(Pde *pgdir, struct Page *pp, u_int perm_mask) {
 			int i = 0;
 			while (i < 1024) {
 				if ((*pte & PTE_V) != 0 ) {
-					u_long a = (*pte) >> 12;
-					u_long s = page2pa(pp) >> 12;
-					if (a  == s) {
+					u_long a = (*pte) >> 12 << 12;
+					
+					if (a == page2pa(pp)) {
 						if (((*pte) & perm_mask) != 0) {
 							cnt++;
 						}	
@@ -39,8 +39,7 @@ u_int page_perm_stat(Pde *pgdir, struct Page *pp, u_int perm_mask) {
 		}
 		pgdir_entryp++;
 		j++;
-	}	
-//	printk("%d\n", cnt);		
+	}			
 	return cnt;
 }
 
