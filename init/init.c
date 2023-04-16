@@ -13,7 +13,8 @@
 
 void mips_init() {
 	printk("init.c:\tmips_init() is called\n");
-
+	ENV_CREATE_PRIORITY(user_bare_loop, 1);
+	ENV_CREATE_PRIORITY(user_bare_loop, 2);
 	// lab2:
 	// mips_detect_memory();
 	// mips_vm_init();
