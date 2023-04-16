@@ -29,6 +29,8 @@ static uint32_t asid_bitmap[NASID / 32] = {0}; // 64
  *   return 0 and set '*asid' to the allocated ASID on success.
  *   return -E_NO_FREE_ENV if no ASID is available.
  */
+
+
 static int asid_alloc(u_int *asid) {
 	for (u_int i = 0; i < NASID; ++i) {
 		int index = i >> 5;
@@ -259,6 +261,7 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	} else {
 		return -E_NO_FREE_ENV;
 	}
+	e->env_parent_id = parent_id;
 	/* Step 4: Initialize the sp and 'cp0_status' in 'e->env_tf'. */
 	// Timer interrupt (STATUS_IM4) will be enabled.
 	e->env_tf.cp0_status = STATUS_IM4 | STATUS_KUp | STATUS_IEp;
