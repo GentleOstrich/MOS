@@ -120,14 +120,14 @@ int envid2env(u_int envid, struct Env **penv, int checkperm) {
 	 */
 	/* Exercise 4.3: Your code here. (1/2) */
 	if (envid == 0) {
-		e = curenv;
+		*penv = curenv;
+		return 0;
 	} else {
 		e = &envs[ENVX(envid)];
 	}
 	if (e->env_status == ENV_FREE || e->env_id != envid) {
 		return -E_BAD_ENV;
 	}
-
 	/* Step 2: Check when 'checkperm' is non-zero. */
 	/* Hints:
 	 *   Check whether the calling env has sufficient permissions to manipulate the
@@ -136,7 +136,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm) {
 	 */
 	/* Exercise 4.3: Your code here. (2/2) */
 	if (checkperm != 0) {
-		if (!(e == curenv || e->env_parent_id == curenv->env_id)) {
+		if (!(e->env_id == curenv->env_id || e->env_parent_id == curenv->env_id)) {
 			return -E_BAD_ENV;
 		}
 	}
