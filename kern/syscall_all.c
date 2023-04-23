@@ -147,7 +147,7 @@ int sys_mem_alloc(u_int envid, u_int va, u_int perm) {
 	/* Step 2: Convert the envid to its corresponding 'struct Env *' using 'envid2env'. */
 	/* Hint: **Always** validate the permission in syscalls! */
 	/* Exercise 4.4: Your code here. (2/3) */
-	try(envid2env(envid, &env, perm));
+	try(envid2env(envid, &env, 1));
 	/* Step 3: Allocate a physical page using 'page_alloc'. */
 	/* Exercise 4.4: Your code here. (3/3) */
 	try(page_alloc(&pp));
@@ -183,10 +183,10 @@ int sys_mem_map(u_int srcid, u_int srcva, u_int dstid, u_int dstva, u_int perm) 
 	//printk("--%x--%x--\n", srcva, dstva );
 	/* Step 2: Convert the 'srcid' to its corresponding 'struct Env *' using 'envid2env'. */
 	/* Exercise 4.5: Your code here. (2/4) */
-	try(envid2env(srcid, &srcenv, perm));
+	try(envid2env(srcid, &srcenv, 1));
 	/* Step 3: Convert the 'dstid' to its corresponding 'struct Env *' using 'envid2env'. */
 	/* Exercise 4.5: Your code here. (3/4) */
-	try(envid2env(dstid, &dstenv, perm));
+	try(envid2env(dstid, &dstenv, 1));
 	/* Step 4: Find the physical page mapped at 'srcva' in the address space of 'srcid'. */
 	/* Return -E_INVAL if 'srcva' is not mapped. */
 	/* Exercise 4.5: Your code here. (4/4) */
@@ -244,9 +244,11 @@ int sys_exofork(void) {
 	/* Step 1: Allocate a new env using 'env_alloc'. */
 	/* Exercise 4.9: Your code here. (1/4) */
 	try(env_alloc(&e, curenv->env_id));
+	
 	/* Step 2: Copy the current Trapframe below 'KSTACKTOP' to the new env's 'env_tf'. */
 	/* Exercise 4.9: Your code here. (2/4) */
-	memcpy((struct Trapframe*)(&(e->env_tf)), (struct Trapframe*)(KSTACKTOP) - 1, sizeof(struct Trapframe));
+	e->env_tf = *((struct Trapframe *)KSTACKTOP - 1);
+	//memcpy((struct Trapframe*)(&(e->env_tf)), (struct Trapframe*)(KSTACKTOP) - 1, sizeof(struct Trapframe));
 	/* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
 	/* Exercise 4.9: Your code here. (3/4) */
 	e->env_tf.regs[2] = 0;
@@ -254,6 +256,7 @@ int sys_exofork(void) {
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status = ENV_NOT_RUNNABLE;
 	e->env_pri = curenv->env_pri;
+	
 	return e->env_id;
 }
 
@@ -278,13 +281,14 @@ int sys_set_env_status(u_int envid, u_int status) {
 	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE) {
 		return -E_INVAL;
 	}
-	
 	/* Step 2: Convert the envid to its corresponding 'struct Env *' using 'envid2env'. */
 	/* Exercise 4.14: Your code here. (2/3) */
 	
 
-	try(envid2env(envid, &env, 0));
-	//printk("================\n");
+	try(envid2env(envid, &env, 1));
+	
+
+	
 	/* Step 3: Update 'env_sched_list' if the 'env_status' of 'env' is being changed. */
 	/* Exercise 4.14: Your code here. (3/3) */
 	if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE) {

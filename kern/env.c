@@ -112,7 +112,7 @@ u_int mkenvid(struct Env *e) {
  */
 int envid2env(u_int envid, struct Env **penv, int checkperm) {
 	struct Env *e;
-
+	
 	/* Step 1: Assign value to 'e' using 'envid'. */
 	/* Hint:
 	 *   If envid is zero, set 'penv' to 'curenv'.
@@ -136,6 +136,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm) {
 	 */
 	/* Exercise 4.3: Your code here. (2/2) */
 	if (checkperm != 0) {
+		//printk("%d----->%d------<%d\n", e->env_id, e->env_parent_id, curenv->env_id);
 		if (!(e->env_id == curenv->env_id || e->env_parent_id == curenv->env_id)) {
 			return -E_BAD_ENV;
 		}
@@ -265,6 +266,7 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	/* Exercise 3.4: Your code here. (3/4) */
 	if (asid_alloc(&(e->env_asid)) == 0) {
 		e->env_id = mkenvid(e);
+		e->env_parent_id = parent_id;
 	} else {
 		return -E_NO_FREE_ENV;
 	}
@@ -465,6 +467,7 @@ extern void env_pop_tf(struct Trapframe *tf, u_int asid) __attribute__((noreturn
  *   You may use these functions: 'env_pop_tf'.
  */
 void env_run(struct Env *e) {
+	
 	assert(e->env_status == ENV_RUNNABLE);
 	pre_env_run(e); // WARNING: DO NOT MODIFY THIS LINE!
 	
@@ -495,7 +498,9 @@ void env_run(struct Env *e) {
 	 */
 	/* Exercise 3.8: Your code here. (2/2) */
 
+
 	env_pop_tf(&(curenv->env_tf), curenv->env_asid);
+
 }
 
 void env_check() {

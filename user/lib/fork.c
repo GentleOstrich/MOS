@@ -88,9 +88,9 @@ static void duppage(u_int envid, u_int vpn) {
 	if ((perm & PTE_D) && !(perm & PTE_LIBRARY) && !(perm & PTE_COW)) {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
-		try(syscall_mem_map(0, addr, envid, addr, perm));
-		try(syscall_mem_map(0, addr, 0, addr, perm));
 	}
+	try(syscall_mem_map(0, addr, envid, addr, perm));
+	try(syscall_mem_map(0, addr, 0, addr, perm));
 }
 
 /* Overview:
@@ -122,18 +122,13 @@ int fork(void) {
 		env = envs + ENVX(syscall_getenvid());
 		return 0;
 	}
-
+	
 	/* Step 3: Map all mapped pages below 'USTACKTOP' into the child's address space. */
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
-	u_int j;
-	for (i = 0; i < USTACKTOP; i += PDMAP) {
-		if (vpd[PDX(i)]) {
-			for (j = 0; j < PDMAP && i + j < USTACKTOP; j += BY2PG) {
-				if (vpt[VPN(i + j)]) {
-					duppage(child, VPN(i + j));
-				}
-			}
+	for (i = 0; i < VPN(USTACKTOP); i++) {
+		if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
+			duppage(child, i);
 		}
 	}
 	/* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
@@ -143,7 +138,11 @@ int fork(void) {
 	 *   Child's TLB Mod user exception entry should handle COW, so set it to 'cow_entry'
 	 */
 	/* Exercise 4.15: Your code here. (2/2) */
+
 	try(syscall_set_tlb_mod_entry(child, cow_entry));
+
 	try(syscall_set_env_status(child, ENV_RUNNABLE));
+
+
 	return child;
 }
