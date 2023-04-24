@@ -7,7 +7,6 @@
 #include <syscall.h>
 
 extern struct Env *curenv;
-
 /* Overview:
  * 	This function is used to print a character on screen.
  *
@@ -486,6 +485,60 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+void sys_set_gid(u_int gid) {
+	curenv->env_gid = gid;
+
+
+}
+
+int sys_ipc_try_group_send(u_int whom, u_int val,u_int srcva, u_int perm) {
+	struct Env *e;
+	struct Page *p;
+
+	if (srcva != 0 && is_illegal_va(srcva)) {
+		return -E_INVAL;
+	}
+	/* Step 2: Convert 'envid' to 'struct Env *e'. */
+	/* This is the only syscall where the 'envid2env' should be used with 'checkperm' UNSET,
+	 * because the target env is not restricted to 'curenv''s children. */
+	/* Exercise 4.8: Your code here. (5/8) */
+	try(envid2env(whom, &e, 0));
+	/* Step 3: Check if the target is waiting for a message. */
+	/* Exercise 4.8: Your code here. (6/8) */
+	if (e->env_ipc_recving == 0) { 
+		return -E_IPC_NOT_RECV; 
+	}
+	if (e->env_gid != curenv->env_gid) {
+		return -E_IPC_NOT_GROUP;
+	}
+	/* Step 4: Set the target's ipc fields. */
+	e->env_ipc_value = val;
+	e->env_ipc_from = curenv->env_id;
+	e->env_ipc_perm = PTE_V | perm;
+	e->env_ipc_recving = 0;
+
+	/* Step 5: Set the target's status to 'ENV_RUNNABLE' again and insert it to the tail of
+	 * 'env_sched_list'. */
+	/* Exercise 4.8: Your code here. (7/8) */
+	e->env_status = ENV_RUNNABLE;
+	TAILQ_INSERT_TAIL(&env_sched_list, e, env_sched_link);
+	/* Step 6: If 'srcva' is not zero, map the page at 'srcva' in 'curenv' to 'e->env_ipc_dstva'
+	 * in 'e'. */
+	/* Return -E_INVAL if 'srcva' is not zero and not mapped in 'curenv'. */
+	if (srcva != 0) {
+		/* Exercise 4.8: Your code here. (8/8) */
+		Pte *ppte;
+		p = page_lookup(curenv->env_pgdir, srcva, &ppte);
+		if (p == NULL) {
+			return -E_INVAL;
+		}
+		page_insert(e->env_pgdir, e->env_asid, p, e->env_ipc_dstva, e->env_ipc_perm);
+	}
+	return 0;
+	
+
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -505,6 +558,8 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+    [SYS_set_gid] = sys_set_gid,
+    [SYS_ipc_try_group_send] = sys_ipc_try_group_send
 };
 
 /* Overview:
@@ -531,7 +586,8 @@ void do_syscall(struct Trapframe *tf) {
 	/* Step 2: Use 'sysno' to get 'func' from 'syscall_table'. */
 	/* Exercise 4.2: Your code here. (2/4) */
 	func = syscall_table[sysno];
-	//printk("----%x\n", sysno);
+	
+//	printk("----%d\n", sysno);
 	/* Step 3: First 3 args are stored in $a1, $a2, $a3. */
 	u_int arg1 = tf->regs[5];
 	u_int arg2 = tf->regs[6];
@@ -546,5 +602,4 @@ void do_syscall(struct Trapframe *tf) {
 	 */
 	/* Exercise 4.2: Your code here. (4/4) */
 	tf->regs[2] = func(arg1, arg2, arg3, arg4, arg5);
-
 }

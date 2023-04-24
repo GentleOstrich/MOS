@@ -22,7 +22,9 @@ enum {
 	SYS_cgetc,
 	SYS_write_dev,
 	SYS_read_dev,
-	MAX_SYSNO,
+	SYS_set_gid,
+	SYS_ipc_try_group_send,
+	MAX_SYSNO
 };
 
 #endif

@@ -45,6 +45,12 @@ int fork(void);
 
 /// syscalls
 extern int msyscall(int, ...);
+void set_gid(u_int gid);
+int ipc_group_send(u_int whom, u_int val, const void *srcva, u_int perm);
+void syscall_set_gid(u_int gid);
+int syscall_ipc_try_group_send(u_int whom, u_int val, const void *srcva, u_int perm);
+
+
 
 void syscall_putchar(int ch);
 int syscall_print_cons(const void *str, u_int num);

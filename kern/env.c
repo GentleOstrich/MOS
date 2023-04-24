@@ -240,7 +240,7 @@ static int env_setup_vm(struct Env *e) {
 int env_alloc(struct Env **new, u_int parent_id) {
 	int r;
 	struct Env *e;
-
+	
 	/* Step 1: Get a free Env from 'env_free_list' 获取一个空闲的env*/ 
 	/* Exercise 3.4: Your code here. (1/4) */
 	if(LIST_EMPTY(&env_free_list)){
@@ -267,6 +267,7 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	if (asid_alloc(&(e->env_asid)) == 0) {
 		e->env_id = mkenvid(e);
 		e->env_parent_id = parent_id;
+		e->env_gid = 0;
 	} else {
 		return -E_NO_FREE_ENV;
 	}

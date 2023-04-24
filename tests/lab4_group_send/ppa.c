@@ -11,6 +11,7 @@ int main() {
 		who = PP2;
 
 		set_gid(11);
+
 		int group_send_error = ipc_group_send(who, wrong_message, 0, 0);
 		debugf("\ngroup_send_error should be -E_IPC_NOT_GROUP -14: you got %d\n",
 		       group_send_error);
