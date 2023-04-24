@@ -68,10 +68,13 @@ int syscall_ipc_recv(void *dstva);
 int syscall_cgetc();
 int syscall_write_dev(void *, u_int, u_int);
 int syscall_read_dev(void *, u_int, u_int);
+int syscall_ipc_try_broadcast(u_int val, u_int srcva, u_int perm);
 
 // ipc.c
 void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm);
 u_int ipc_recv(u_int *whom, void *dstva, u_int *perm);
+void ipc_broadcast(u_int val, void* srcva, u_int perm);
+void dfs_(u_int val, void* srcva, u_int perm, u_int id);
 
 // wait.c
 void wait(u_int envid);

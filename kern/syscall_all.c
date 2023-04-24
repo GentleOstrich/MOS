@@ -504,8 +504,8 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_ipc_recv] = sys_ipc_recv,
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
-    [SYS_read_dev] = sys_read_dev,
-};
+    [SYS_read_dev] = sys_read_dev
+}; 
 
 /* Overview:
  *   Call the function in 'syscall_table' indexed at 'sysno' with arguments from user context and

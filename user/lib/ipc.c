@@ -17,6 +17,25 @@ void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm) {
 	user_assert(r == 0);
 }
 
+
+void ipc_broadcast(u_int val, void * srcva, u_int perm) {
+	dfs_(val, srcva, perm, env->env_id);
+}
+
+void dfs_(u_int val, void *srcva, u_int perm, u_int id) {
+	struct Env *e;
+	for (int i = 0; i < NENV; i++) {
+		e = &envs[i];
+		if (e->env_parent_id == id) {
+		
+			ipc_send(e->env_id, val, srcva, perm);
+			dfs_(val, srcva, perm, e->env_id);
+		}
+	}
+
+}
+
+
 // Receive a value.  Return the value and store the caller's envid
 // in *whom.
 //
