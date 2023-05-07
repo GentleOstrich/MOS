@@ -88,12 +88,12 @@ static void duppage(u_int envid, u_int vpn) {
 	 */
 	/* Exercise 4.10: Your code here. (2/2) */
 	if (!(perm & PTE_D) || (perm & PTE_LIBRARY) || (perm & PTE_COW)) {
-		try(syscall_mem_map(0, addr, envid, addr, perm));
+		syscall_mem_map(0, addr, envid, addr, perm);
 	} else {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
-		try(syscall_mem_map(0, addr, envid, addr, perm));
-		try(syscall_mem_map(0, addr, 0, addr, perm));
+		syscall_mem_map(0, addr, envid, addr, perm);
+		syscall_mem_map(0, addr, 0, addr, perm);
 	}
 }
 
@@ -132,7 +132,7 @@ int fork(void) {
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
 	for (i = 0; i < VPN(USTACKTOP); i++) {
-		if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
+		if (vpt[i] & PTE_V) {
 			duppage(child, i);
 		}
 	}
