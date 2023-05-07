@@ -31,7 +31,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	perm |= PTE_D;
 	/* Step 3: Allocate a new page at 'UCOW'. */
 	/* Exercise 4.13: Your code here. (3/6) */
-	try(syscall_mem_alloc(0, (void *)(UCOW), perm));
+	syscall_mem_alloc(0, (void *)(UCOW), perm);
 	/* Step 4: Copy the content of the faulting page at 'va' to 'UCOW'. */
 	/* Hint: 'va' may not be aligned to a page! */
 	/* Exercise 4.13: Your code here. (4/6) */
@@ -39,10 +39,10 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	memcpy((void *)(UCOW), (void *)PTE_ADDR(va), BY2PG);
 	// Step 5: Map the page at 'UCOW' to 'va' with the new 'perm'.
 	/* Exercise 4.13: Your code here. (5/6) */
-	try(syscall_mem_map(0, (void *)(UCOW), 0, (void *)PTE_ADDR(va), perm));
+	syscall_mem_map(0, (void *)(UCOW), 0, (void *)PTE_ADDR(va), perm);
 	// Step 6: Unmap the page at 'UCOW'.
 	/* Exercise 4.13: Your code here. (6/6) */
-	try(syscall_mem_unmap(0, (void *)(UCOW)));
+	syscall_mem_unmap(0, (void *)(UCOW)));
 	// Step 7: Return to the faulting routine.
 	int r = syscall_set_trapframe(0, tf);
 	user_panic("syscall_set_trapframe returned %d", r);
@@ -74,7 +74,6 @@ static void duppage(u_int envid, u_int vpn) {
 	int r;
 	u_int addr;
 	u_int perm;
-
 	/* Step 1: Get the permission of the page. */
 	/* Hint: Use 'vpt' to find the page table entry. */
 	/* Exercise 4.10: Your code here. (1/2) */
@@ -85,12 +84,14 @@ static void duppage(u_int envid, u_int vpn) {
 	/* Hint: The page should be first mapped to the child before remapped in the parent. (Why?)
 	 */
 	/* Exercise 4.10: Your code here. (2/2) */
-	if ((perm & PTE_D) && !(perm & PTE_LIBRARY) && !(perm & PTE_COW)) {
+	if (!(perm & PTE_D) || (perm & PTE_LIBRARY) || (perm & PTE_COW)) {
+		syscall_mem_map(0, addr, envid, addr, perm);
+	} else {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
+		syscall_mem_map(0, addr, envid, addr, perm);
+		syscall_mem_map(0, addr, 0, addr, perm);
 	}
-	try(syscall_mem_map(0, addr, envid, addr, perm));
-	try(syscall_mem_map(0, addr, 0, addr, perm));
 }
 
 /* Overview:

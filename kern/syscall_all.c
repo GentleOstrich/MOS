@@ -283,17 +283,12 @@ int sys_set_env_status(u_int envid, u_int status) {
 	}
 	/* Step 2: Convert the envid to its corresponding 'struct Env *' using 'envid2env'. */
 	/* Exercise 4.14: Your code here. (2/3) */
-	
-
-	try(envid2env(envid, &env, 1));
-	
-
-	
+	try(envid2env(envid, &env, 1));	
 	/* Step 3: Update 'env_sched_list' if the 'env_status' of 'env' is being changed. */
 	/* Exercise 4.14: Your code here. (3/3) */
-	if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE) {
+	if (status == ENV_RUNNABLE && env->env_status == ENV_NOT_RUNNABLE) {
 		TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
-	} else if (status != ENV_RUNNABLE && env->env_status == ENV_RUNNABLE) {
+	} else if (status == ENV_NOT_RUNNABLE && env->env_status == ENV_RUNNABLE) {
 		TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
 	}
 	/* Step 4: Set the 'env_status' of 'env'. */
@@ -450,7 +445,7 @@ int sys_cgetc(void) {
  *  Return 0 on success.
  *  Return -E_INVAL on bad address.
  *
- * Hint: Use the unmapped and uncached segment in kernel address space (KSEG1) to perform MMIO.
+ * Hint: Use the **unmapped and uncached** segment in kernel address space (KSEG1) to perform MMIO. 
  * Hint: You can use 'is_illegal_va_range' to validate 'va'.
  * Hint: You MUST use 'memcpy' to copy data after checking the validity.
  *
@@ -465,7 +460,17 @@ int sys_cgetc(void) {
  */
 int sys_write_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (1/2) */
-
+	if (is_illegal_va_range(va, len)) {
+		return -E_INVAL;
+	}
+	if (pa >= 0x10000000 && pa + len < 0x10000020 ||
+		pa >= 0x13000000 && pa + len < 0x13004200 ||
+		pa >= 0x15000000 && pa + len < 0x15000200) {
+			u_int devva = pa + 0xA0000000;
+			memcpy(devva, va, len);
+		} else {
+		return -E_INVAL;
+	}
 	return 0;
 }
 
@@ -482,7 +487,18 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
  */
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
-
+	if (is_illegal_va_range(va, len)) {
+		printk("0x%x\n", va);
+		return -E_INVAL;
+	}
+	if (((pa & ~0xff) == 0x10000000 && len < 0x20) || 
+		((pa & ~0xffff) == 0x13000000 && len < 0x4200) || 
+		((pa & ~0xfff) == 0x15000000 && len < 0x200)) {
+		u_int devva = pa + 0xA0000000;
+		memcpy(va, devva, len);
+	} else {
+		return -E_INVAL;
+	}
 	return 0;
 }
 
