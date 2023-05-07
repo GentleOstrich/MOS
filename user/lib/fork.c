@@ -42,7 +42,7 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	syscall_mem_map(0, (void *)(UCOW), 0, (void *)PTE_ADDR(va), perm);
 	// Step 6: Unmap the page at 'UCOW'.
 	/* Exercise 4.13: Your code here. (6/6) */
-	syscall_mem_unmap(0, (void *)(UCOW)));
+	syscall_mem_unmap(0, (void *)(UCOW));
 	// Step 7: Return to the faulting routine.
 	int r = syscall_set_trapframe(0, tf);
 	user_panic("syscall_set_trapframe returned %d", r);
