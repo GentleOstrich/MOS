@@ -84,14 +84,12 @@ static void duppage(u_int envid, u_int vpn) {
 	/* Hint: The page should be first mapped to the child before remapped in the parent. (Why?)
 	 */
 	/* Exercise 4.10: Your code here. (2/2) */
-	if (!(perm & PTE_D) || (perm & PTE_LIBRARY) || (perm & PTE_COW)) {
-		syscall_mem_map(0, addr, envid, addr, perm);
-	} else {
+	if ((perm & PTE_D) && !(perm & PTE_LIBRARY) && !(perm & PTE_COW)) {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
-		syscall_mem_map(0, addr, envid, addr, perm);
-		syscall_mem_map(0, addr, 0, addr, perm);
 	}
+	try(syscall_mem_map(0, addr, envid, addr, perm));
+	try(syscall_mem_map(0, addr, 0, addr, perm));
 }
 
 /* Overview:
@@ -128,7 +126,9 @@ int fork(void) {
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
 	for (i = 0; i < VPN(USTACKTOP); i++) {
-		duppage(child, i);
+		if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
+			duppage(child, i);
+		}
 	}
 	/* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
 	 * 'ENV_RUNNABLE'. */
