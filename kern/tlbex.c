@@ -82,4 +82,5 @@ void do_tlb_mod(struct Trapframe *tf) {
 		panic("TLB Mod but no user handler registered");
 	}
 }
+
 #endif

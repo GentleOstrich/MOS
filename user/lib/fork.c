@@ -48,6 +48,8 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	user_panic("syscall_set_trapframe returned %d", r);
 }
 
+
+
 /* Overview:
  *   Grant our child 'envid' access to the virtual page 'vpn' (with address 'vpn' * 'BY2PG') in our
  *   (current env's) address space.
@@ -74,6 +76,7 @@ static void duppage(u_int envid, u_int vpn) {
 	int r;
 	u_int addr;
 	u_int perm;
+
 	/* Step 1: Get the permission of the page. */
 	/* Hint: Use 'vpt' to find the page table entry. */
 	/* Exercise 4.10: Your code here. (1/2) */
@@ -84,13 +87,16 @@ static void duppage(u_int envid, u_int vpn) {
 	/* Hint: The page should be first mapped to the child before remapped in the parent. (Why?)
 	 */
 	/* Exercise 4.10: Your code here. (2/2) */
-	if ((perm & PTE_D) && !(perm & PTE_LIBRARY) && !(perm & PTE_COW)) {
+	if (!(perm & PTE_D) || (perm & PTE_LIBRARY) || (perm & PTE_COW)) {
+		try(syscall_mem_map(0, addr, envid, addr, perm));
+	} else {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
+		try(syscall_mem_map(0, addr, envid, addr, perm));
+		try(syscall_mem_map(0, addr, 0, addr, perm));
 	}
-	try(syscall_mem_map(0, addr, envid, addr, perm));
-	try(syscall_mem_map(0, addr, 0, addr, perm));
 }
+
 
 /* Overview:
  *   User-level 'fork'. Create a child and then copy our address space.
