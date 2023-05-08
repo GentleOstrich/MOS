@@ -39,7 +39,7 @@ int sys_barrier_wait() {
 	}
 	//printk("%d===\n", p[j-1]);
 	if (barrier == 0) {
-		for (int i = 0; i < 70; ++i) {
+		for (int i = 0; i < j; ++i) {
 			if (p[i] != 0) {
 				struct Env * env;
 				try(envid2env(env, p[i], 1));
