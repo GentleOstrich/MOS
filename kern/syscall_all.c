@@ -42,7 +42,7 @@ int sys_barrier_wait() {
 		for (int i = 0; i < 70; ++i) {
 			if (p[i] != 0) {
 				struct Env * env;
-				envid2env(env, p[i], 0);
+				try(envid2env(env, p[i], 1));
 				env->env_status = ENV_RUNNABLE;
 				TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
 //				printk("+++%d\n", env->env_id);
