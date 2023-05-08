@@ -28,18 +28,7 @@ int sys_barrier_alloc(int n) {
 
 int sys_barrier_wait() {
 //	printk("====%d\n", barrier);
-	if (barrier == 0) {
-		for (int i = 0; i < 70; ++i) {
-			if (p[i] != 0) {
-				struct Env * env;
-				envid2env(env, p[i], 0);
-				env->env_status = ENV_RUNNABLE;
-	//			printk("+++%d\n", env->env_id);
-			}
-			p[i] = 0;
-		}
-		j = 0;
-	}
+
 	int flag = 0;
 	for (int i = 0 ; i < 70; ++i) {
 		if (p[i] == curenv->env_id) {
@@ -53,6 +42,18 @@ int sys_barrier_wait() {
 		flag = 1;
 		barrier--;
 		curenv->env_status = ENV_NOT_RUNNABLE;
+	}
+	if (barrier == 0) {
+		for (int i = 0; i < 70; ++i) {
+			if (p[i] != 0) {
+				struct Env * env;
+				envid2env(env, p[i], 0);
+				env->env_status = ENV_RUNNABLE;
+	//			printk("+++%d\n", env->env_id);
+			}
+			p[i] = 0;
+		}
+		j = 0;
 	}
 //	printk("1111\n");
 	if (flag) {
