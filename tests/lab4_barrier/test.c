@@ -2,7 +2,7 @@
 
 int main() {
 	barrier_alloc(10);
-	for (int i = 0; i < 9; i++) {
+	for (int i = 0; i < 10; i++) {
 		int who = fork();
 		if (who == 0) {
 			debugf("I'm son!\n");

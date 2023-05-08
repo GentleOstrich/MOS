@@ -22,7 +22,7 @@ void sys_putchar(int c) {
 }
 
 int sys_barrier_alloc(int n) {
-	barrier = n;
+	barrier = n - 1;
 	return 0;
 }
 
