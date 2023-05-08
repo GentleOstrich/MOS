@@ -13,6 +13,8 @@
 #define envs ((volatile struct Env *)UENVS)
 #define pages ((volatile struct Page *)UPAGES)
 
+void barrier_alloc(int n);
+void barrier_wait(void);
 // libos
 void exit(void) __attribute__((noreturn));
 
@@ -47,6 +49,8 @@ int user_getsp(void);
 extern int msyscall(int, ...);
 extern int getsp(void);
 void syscall_putchar(int ch);
+int syscall_barrier_alloc(int n);
+int syscall_barrier_wait(void);
 int syscall_print_cons(const void *str, u_int num);
 u_int syscall_getenvid(void);
 void syscall_yield(void);

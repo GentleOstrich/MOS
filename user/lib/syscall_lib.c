@@ -8,6 +8,14 @@ void syscall_putchar(int ch) {
 	msyscall(SYS_putchar, ch);
 }
 
+int syscall_barrier_alloc(int n) {
+	return msyscall(SYS_barrier_alloc, n);
+}
+
+int syscall_barrier_wait(void) {
+	return msyscall(SYS_barrier_wait);
+}
+
 int syscall_print_cons(const void *str, u_int num) {
 	return msyscall(SYS_print_cons, str, num);
 }
