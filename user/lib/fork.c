@@ -152,3 +152,8 @@ int fork(void) {
 
 	return child;
 }
+
+int user_getsp() {
+	int sp = getsp();
+	return ROUNDDOWN(sp, BY2PG);
+}

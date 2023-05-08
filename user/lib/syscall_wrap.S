@@ -8,3 +8,9 @@ LEAF(msyscall)
 	jr ra
 	nop
 END(msyscall)
+
+LEAF(getsp)
+	move v0, sp
+	jr ra
+	nop
+END(getsp)

@@ -42,10 +42,10 @@ void _user_halt(const char *, int, const char *, ...) __attribute__((noreturn));
 int spawn(char *prog, char **argv);
 int spawnl(char *prot, char *args, ...);
 int fork(void);
-
+int user_getsp(void);
 /// syscalls
 extern int msyscall(int, ...);
-
+extern int getsp(void);
 void syscall_putchar(int ch);
 int syscall_print_cons(const void *str, u_int num);
 u_int syscall_getenvid(void);
