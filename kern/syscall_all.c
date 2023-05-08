@@ -54,6 +54,7 @@ int sys_barrier_wait() {
 			p[i] = 0;
 		}
 		j = 0;
+		return 0;
 	}
 //	printk("1111\n");
 	if (flag) {
