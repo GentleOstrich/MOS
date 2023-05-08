@@ -42,10 +42,10 @@ int sys_barrier_wait() {
 //			printk("2222222222222!!!!!!!!!!!!!2");
 			if (p[i] != 0) {
 				struct Env * env;
-				try(envid2env(env, p[i], 1));
+				envid2env(env, p[i], 1);
 				env->env_status = ENV_RUNNABLE;
 				TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
-//				printk("+++%d\n", env->env_id);
+				printk("+++%d\n", env->env_id);
 			}
 			p[i] = 0;
 		}
