@@ -30,13 +30,13 @@ int sys_barrier_wait() {
 //	printk("====%d\n", barrier);
 	if (barrier == 0) {
 		for (int i = 0; i < 70; ++i) {
-			p[i] = 0;
 			if (p[i] != 0) {
 				struct Env * env;
 				envid2env(env, p[i], 0);
 				env->env_status = ENV_RUNNABLE;
 	//			printk("+++%d\n", env->env_id);
 			}
+			p[i] = 0;
 		}
 		j = 0;
 	}
