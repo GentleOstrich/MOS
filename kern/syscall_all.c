@@ -29,20 +29,12 @@ int sys_barrier_alloc(int n) {
 int sys_barrier_wait() {
 //	printk("====%d\n", barrier);
 
-	int flag = 0;
 	//printk("%d\n", curenv->env_id);
-	for (int i = 0 ; i < 70; ++i) {	
-		if (p[i] == curenv->env_id) {
-			flag = 1;
-			break;
-//			printk("---%d\n", p[i]);
-		}
-	}
-	if (barrier > 0 && flag == 0) {
+	if (barrier > 0) {
 		p[j++] = curenv->env_id;
-		flag = 1;
 		barrier--;
 		curenv->env_status = ENV_NOT_RUNNABLE;
+		return -1;
 	}
 	if (barrier == 0) {
 		for (int i = 0; i < 70; ++i) {
@@ -58,10 +50,6 @@ int sys_barrier_wait() {
 		j = 0;
 		return 0;
 	}
-//	printk("1111\n");
-	if (flag) {
-		return -1;
-	} else  return 0;
 }
 
 /* Overview:
