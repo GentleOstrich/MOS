@@ -131,9 +131,10 @@ int fork(void) {
 	/* Step 3: Map all mapped pages below 'USTACKTOP' into the child's address space. */
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
-	for (i = 0; i < VPN(USTACKTOP); i++) {
-		if (vpt[i] & PTE_V) {
-			duppage(child, i);
+
+	for (i = 0; i < USTACKTOP; i += BY2PG) {
+		if ((vpd[PDX(i)] & PTE_V) && (vpt[VPN(i)] & PTE_V)) {
+			duppage(child, VPN(i));
 		}
 	}
 	/* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
