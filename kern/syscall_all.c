@@ -34,8 +34,7 @@ int sys_barrier_wait() {
 		p[j] = curenv->env_id;
 		j = j + 1;
 		barrier--;
-		curenv->env_status = ENV_NOT_RUNNABLE;
-		return -1;
+		curenv->env_status = ENV_NOT_RUNNABLE;;
 	}
 	//printk("%d===\n", p[j-1]);
 	if (barrier == 0) {
@@ -45,13 +44,14 @@ int sys_barrier_wait() {
 				try(envid2env(env, p[i], 1));
 				env->env_status = ENV_RUNNABLE;
 				TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
-//				printk("+++%d\n", env->env_id);
+				printk("+++%d\n", env->env_id);
 			}
 			p[i] = 0;
 		}
 		j = 0;
 		return 0;
 	}
+	return -1;
 }
 
 /* Overview:
