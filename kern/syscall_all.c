@@ -30,7 +30,8 @@ int sys_barrier_wait() {
 //	printk("====%d\n", barrier);
 
 	int flag = 0;
-	for (int i = 0 ; i < 70; ++i) {
+	//printk("%d\n", curenv->env_id);
+	for (int i = 0 ; i < 70; ++i) {	
 		if (p[i] == curenv->env_id) {
 			flag = 1;
 			break;
@@ -49,6 +50,7 @@ int sys_barrier_wait() {
 				struct Env * env;
 				envid2env(env, p[i], 0);
 				env->env_status = ENV_RUNNABLE;
+				TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
 	//			printk("+++%d\n", env->env_id);
 			}
 			p[i] = 0;
