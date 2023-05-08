@@ -27,15 +27,17 @@ int sys_barrier_alloc(int n) {
 }
 
 int sys_barrier_wait() {
-//	printk("====%d\n", barrier);
+//	printk("====%d %d\n", barrier, j);
 
 	//printk("%d\n", curenv->env_id);
 	if (barrier > 0) {
-		p[j++] = curenv->env_id;
+		p[j] = curenv->env_id;
+		j = j + 1;
 		barrier--;
 		curenv->env_status = ENV_NOT_RUNNABLE;
 		return -1;
 	}
+	//printk("%d===\n", p[j-1]);
 	if (barrier == 0) {
 		for (int i = 0; i < 70; ++i) {
 			if (p[i] != 0) {
@@ -43,7 +45,7 @@ int sys_barrier_wait() {
 				envid2env(env, p[i], 0);
 				env->env_status = ENV_RUNNABLE;
 				TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
-	//			printk("+++%d\n", env->env_id);
+//				printk("+++%d\n", env->env_id);
 			}
 			p[i] = 0;
 		}
