@@ -42,11 +42,13 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
 	syscall_mem_map(0, (void *)(UCOW), 0, (void *)PTE_ADDR(va), perm);
 	// Step 6: Unmap the page at 'UCOW'.
 	/* Exercise 4.13: Your code here. (6/6) */
-	syscall_mem_unmap(0, (void *)(UCOW)));
+	syscall_mem_unmap(0, (void *)(UCOW));
 	// Step 7: Return to the faulting routine.
 	int r = syscall_set_trapframe(0, tf);
 	user_panic("syscall_set_trapframe returned %d", r);
 }
+
+
 
 /* Overview:
  *   Grant our child 'envid' access to the virtual page 'vpn' (with address 'vpn' * 'BY2PG') in our
@@ -74,6 +76,7 @@ static void duppage(u_int envid, u_int vpn) {
 	int r;
 	u_int addr;
 	u_int perm;
+
 	/* Step 1: Get the permission of the page. */
 	/* Hint: Use 'vpt' to find the page table entry. */
 	/* Exercise 4.10: Your code here. (1/2) */
@@ -93,6 +96,7 @@ static void duppage(u_int envid, u_int vpn) {
 		syscall_mem_map(0, addr, 0, addr, perm);
 	}
 }
+
 
 /* Overview:
  *   User-level 'fork'. Create a child and then copy our address space.
@@ -127,9 +131,10 @@ int fork(void) {
 	/* Step 3: Map all mapped pages below 'USTACKTOP' into the child's address space. */
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
-	for (i = 0; i < VPN(USTACKTOP); i++) {
-		if ((vpd[i >> 10] & PTE_V) && (vpt[i] & PTE_V)) {
-			duppage(child, i);
+
+	for (i = 0; i < USTACKTOP; i += BY2PG) {
+		if ((vpd[PDX(i)] & PTE_V) && (vpt[VPN(i)] & PTE_V)) {
+			duppage(child, VPN(i));
 		}
 	}
 	/* Step 4: Set up the child's tlb mod handler and set child's 'env_status' to
@@ -146,4 +151,9 @@ int fork(void) {
 
 
 	return child;
+}
+
+int user_getsp() {
+	int sp = getsp();
+	return ROUNDDOWN(sp, BY2PG);
 }
