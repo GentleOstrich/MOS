@@ -488,12 +488,12 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
 	if (is_illegal_va_range(va, len)) {
-		printk("0x%x\n", va);
+		//printk("0x%x\n", va);
 		return -E_INVAL;
 	}
-	if (((pa & ~0xff) == 0x10000000 && len < 0x20) || 
+	if (((pa & ~0xff)   == 0x10000000 && len < 0x20) || 
 		((pa & ~0xffff) == 0x13000000 && len < 0x4200) || 
-		((pa & ~0xfff) == 0x15000000 && len < 0x200)) {
+		((pa & ~0xfff)  == 0x15000000 && len < 0x200)) {
 		u_int devva = pa + 0xA0000000;
 		memcpy(va, devva, len);
 	} else {
