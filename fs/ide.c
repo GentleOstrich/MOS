@@ -39,6 +39,7 @@ void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs) {
 		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_START_OPERATION, sizeof(uint32_t)));
 		panic_on(syscall_read_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_STATUS, sizeof(uint32_t)));
 		if (temp) {
+			//debugf("0x%x + 0x%x\n", dst , off);
 			panic_on(syscall_read_dev(dst + off, DEV_DISK_BUFFER + DEV_DISK_ADDRESS, DEV_DISK_BUFFER_LEN));
 		} else {
 			user_panic("ide read failed");

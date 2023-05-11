@@ -470,14 +470,16 @@ int sys_cgetc(void) {
 int sys_write_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (1/2) */
 	if (is_illegal_va_range(va, len)) {
+		printk("va: 0x%x is invalid in writing, the len is 0x%x\n", va, len);
 		return -E_INVAL;
 	}
-	if (pa >= 0x10000000 && pa + len < 0x10000020 ||
-		pa >= 0x13000000 && pa + len < 0x13004200 ||
-		pa >= 0x15000000 && pa + len < 0x15000200) {
-			u_int devva = pa + 0xA0000000;
+	if (pa >= 0x10000000 && pa + len <= 0x10000020 ||
+		pa >= 0x13000000 && pa + len <= 0x13004200 ||
+		pa >= 0x15000000 && pa + len <= 0x15000200) {
+			u_int devva = pa + KSEG1;
 			memcpy(devva, va, len);
 		} else {
+		printk("pa: 0x%x is invalid in writing, the len is 0x%x\n", pa, len);
 		return -E_INVAL;
 	}
 	return 0;
@@ -497,15 +499,16 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
 	if (is_illegal_va_range(va, len)) {
-		//printk("0x%x\n", va);
+		printk("va: 0x%x is invalid in reading, the len is 0x%x\n", va, len);
 		return -E_INVAL;
 	}
-	if (((pa & ~0xff)   == 0x10000000 && len < 0x20) || 
-		((pa & ~0xffff) == 0x13000000 && len < 0x4200) || 
-		((pa & ~0xfff)  == 0x15000000 && len < 0x200)) {
-		u_int devva = pa + 0xA0000000;
+	if (pa >= 0x10000000 && pa + len <= 0x10000020 ||
+		pa >= 0x13000000 && pa + len <= 0x13004200 ||
+		pa >= 0x15000000 && pa + len <= 0x15000200) {
+		u_int devva = pa + KSEG1;
 		memcpy(va, devva, len);
 	} else {
+		printk("pa: 0x%x is invalid in reading, the len is 0x%x\n", pa, len);
 		return -E_INVAL;
 	}
 	return 0;
