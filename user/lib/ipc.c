@@ -42,7 +42,7 @@ void usleep(u_int us) {
 		u_int nwm;
 		u_int nzm = get_time(&nwm);
 		int t1 = (int) (nzm - bzm);
-		int t2 = (int) (nwm - bwm);
+		int t2 = (int) (nwm - bwm - us);
 
 		int t = t1 * 1000000 + t2;
 
