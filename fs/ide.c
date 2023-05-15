@@ -32,12 +32,12 @@ void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs) {
 	for (u_int off = 0; begin + off < end; off += BY2SECT) {
 		uint32_t temp = diskno;
 		/* Exercise 5.3: Your code here. (1/2) */
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_ID, sizeof(uint32_t)));
+		panic_on(syscall_write_dev(&temp, DEV_DISK_ID + DEV_DISK_ADDRESS, BY2SECT));
 		temp = begin + off;
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_OFFSET, sizeof(uint32_t)));
+		panic_on(syscall_write_dev(&temp, DEV_DISK_OFFSET + DEV_DISK_ADDRESS, BY2SECT));
 		temp = DEV_DISK_OPERATION_READ;
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_START_OPERATION, sizeof(uint32_t)));
-		panic_on(syscall_read_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_STATUS, sizeof(uint32_t)));
+		panic_on(syscall_write_dev(&temp, DEV_DISK_START_OPERATION + DEV_DISK_ADDRESS, BY2SECT));
+		panic_on(syscall_read_dev(&temp, DEV_DISK_STATUS + DEV_DISK_ADDRESS, BY2SECT));
 		if (temp) {
 			//debugf("0x%x + 0x%x\n", dst , off);
 			panic_on(syscall_read_dev(dst + off, DEV_DISK_BUFFER + DEV_DISK_ADDRESS, DEV_DISK_BUFFER_LEN));
@@ -70,14 +70,15 @@ void ide_write(u_int diskno, u_int secno, void *src, u_int nsecs) {
 	for (u_int off = 0; begin + off < end; off += BY2SECT) {
 		uint32_t temp = diskno;
 		/* Exercise 5.3: Your code here. (2/2) */
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_ID, sizeof(uint32_t)));
+		panic_on(syscall_write_dev(&temp, DEV_DISK_ID + DEV_DISK_ADDRESS, BY2SECT));
 		temp = begin + off;
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_OFFSET, sizeof(uint32_t)));
-		
+		panic_on(syscall_write_dev(&temp, DEV_DISK_OFFSET + DEV_DISK_ADDRESS, BY2SECT));
+		//先将数据放入缓存区
 		panic_on(syscall_write_dev(src + off, DEV_DISK_BUFFER + DEV_DISK_ADDRESS, DEV_DISK_BUFFER_LEN));
+		//然后再写入1启动
 		temp = DEV_DISK_OPERATION_WRITE;
-		panic_on(syscall_write_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_START_OPERATION, sizeof(uint32_t)));
-		panic_on(syscall_read_dev(&temp, DEV_DISK_ADDRESS + DEV_DISK_STATUS, sizeof(uint32_t)));
+		panic_on(syscall_write_dev(&temp, DEV_DISK_START_OPERATION + DEV_DISK_ADDRESS, BY2SECT));
+		panic_on(syscall_read_dev(&temp, DEV_DISK_STATUS + DEV_DISK_ADDRESS, BY2SECT));
 		if (!temp) {
 			user_panic("ide write failed");
 		}
