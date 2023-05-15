@@ -16,6 +16,12 @@
 
 /* Maximum disk size we can handle (1GB) */
 #define DISKMAX 0x40000000
+int ssd_alloc(u_int logic_no);
+void ssd_init();
+int ssd_read(u_int logic_no, void *dst);
+void ssd_write(u_int logic_no, void *src);
+void ssd_erase(u_int logic_no);
+
 
 /* ide.c */
 void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs);

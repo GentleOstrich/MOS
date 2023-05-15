@@ -62,5 +62,7 @@ int num2fd(int fd);
 extern struct Dev devcons;
 extern struct Dev devfile;
 extern struct Dev devpipe;
-
+//extern int map0[32];
+//extern int map1[32];
+//extern int map2[32];
 #endif
