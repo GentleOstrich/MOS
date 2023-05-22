@@ -73,7 +73,6 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
  *     'sys_mem_map' in kernel.
  */
 static void duppage(u_int envid, u_int vpn) {
-	int r;
 	u_int addr;
 	u_int perm;
 
@@ -88,12 +87,12 @@ static void duppage(u_int envid, u_int vpn) {
 	 */
 	/* Exercise 4.10: Your code here. (2/2) */
 	if (!(perm & PTE_D) || (perm & PTE_LIBRARY) || (perm & PTE_COW)) {
-		syscall_mem_map(0, addr, envid, addr, perm);
+		syscall_mem_map(0, (void*)addr, envid, (void*)addr, perm);
 	} else {
 		perm |= PTE_COW;
 		perm &= ~PTE_D;
-		syscall_mem_map(0, addr, envid, addr, perm);
-		syscall_mem_map(0, addr, 0, addr, perm);
+		syscall_mem_map(0, (void*)addr, envid, (void*)addr, perm);
+		syscall_mem_map(0, (void*)addr, 0, (void*)addr, perm);
 	}
 }
 

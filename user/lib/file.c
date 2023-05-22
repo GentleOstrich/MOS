@@ -26,7 +26,6 @@ struct Dev devfile = {
 //  the file descriptor on success,
 //  the underlying error on failure.
 int open(const char *path, int mode) {
-	int r;
 
 	// Step 1: Alloc a new 'Fd' using 'fd_alloc' in fd.c.
 	// Hint: return the error code if failed.
@@ -246,7 +245,8 @@ int remove(const char *path) {
 	// Call fsipc_remove.
 
 	/* Exercise 5.13: Your code here. */
-	fsipc_remove(path);
+	int r = fsipc_remove(path);
+	return r;
 }
 
 // Overview:

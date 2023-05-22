@@ -127,7 +127,8 @@ int fsipc_remove(const char *path) {
 	strcpy(req->req_path, path);
 	// Step 4: Send request to the server using 'fsipc'.
 	/* Exercise 5.12: Your code here. (3/3) */
-	fsipc(FSREQ_REMOVE, req, 0, 0);
+	int r = fsipc(FSREQ_REMOVE, req, 0, 0);
+	return r;
 }
 
 // Overview:
