@@ -201,6 +201,13 @@ void serve_sync(u_int envid) {
 	ipc_send(envid, 0, 0, 0);
 }
 
+void serve_xxx(u_int envid, struct Fsreq_xxx *rq) {
+
+	//调用fs/fs.c中的file_函数
+
+	ipc_send(envid, 0, 0, 0);
+}
+
 void serve(void) {
 	u_int req, whom, perm;
 
@@ -216,6 +223,9 @@ void serve(void) {
 		}
 
 		switch (req) {
+		case FSREQ_xxx:
+			serve_xxx(whom, (struct Fsreq_xxx *)REQVA);
+			break;
 		case FSREQ_OPEN:
 			serve_open(whom, (struct Fsreq_open *)REQVA);
 			break;

@@ -100,6 +100,7 @@ int fsipc_dirty(u_int, u_int);
 int fsipc_remove(const char *);
 int fsipc_sync(void);
 int fsipc_incref(u_int);
+int fsipc_xxx(void);
 
 // fd.c
 int close(int fd);
@@ -118,6 +119,7 @@ int read_map(int fd, u_int offset, void **blk);
 int remove(const char *path);
 int ftruncate(int fd, u_int size);
 int sync(void);
+int xxx(void);
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \

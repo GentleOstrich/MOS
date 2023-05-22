@@ -254,3 +254,9 @@ int remove(const char *path) {
 int sync(void) {
 	return fsipc_sync();
 }
+
+
+int xxx(void) {
+	int r = fsipc_xxx();
+	return r;
+}

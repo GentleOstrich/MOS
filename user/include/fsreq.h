@@ -13,6 +13,11 @@
 #define FSREQ_DIRTY 5
 #define FSREQ_REMOVE 6
 #define FSREQ_SYNC 7
+#define FSREQ_xxx  8
+
+struct Fsreq_xxx {
+	char req_path[MAXPATHLEN];
+};
 
 struct Fsreq_open {
 	char req_path[MAXPATHLEN];
