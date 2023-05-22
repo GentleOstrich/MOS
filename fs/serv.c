@@ -115,6 +115,43 @@ void serve_open(u_int envid, struct Fsreq_open *rq) {
 
 	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
 }
+void serve_openat(u_int envid, struct Fsreq_openat* rq)  {
+	int r;
+	struct Open *pOpen;	
+	if ((r = open_lookup(envid, rq->dir_fileid, &pOpen)) < 0) {
+		ipc_send(envid, r, 0, 0);
+		return;
+	}
+	struct File *dir = pOpen->o_file;
+	
+	struct Open *o;
+	struct File *f;
+	struct Filefd *ff;
+
+	// Find a file id.
+	if ((r = open_alloc(&o)) < 0) {
+		ipc_send(envid, r, 0, 0);
+	}
+
+	// Open the file.
+	if ((r = file_openat(dir, rq->req_path, &f)) < 0) {
+		ipc_send(envid, r, 0, 0);
+		return;
+	}
+	
+	// Save the file pointer.
+	o->o_file = f;
+
+	// Fill out the Filefd structure
+	ff = (struct Filefd *)o->o_ff;
+	ff->f_file = *f;
+	ff->f_fileid = o->o_fileid;
+	o->o_mode = rq->req_omode;
+	ff->f_fd.fd_omode = o->o_mode;
+	ff->f_fd.fd_dev_id = devfile.dev_id;
+
+	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
+}
 
 void serve_map(u_int envid, struct Fsreq_map *rq) {
 	struct Open *pOpen;
@@ -223,8 +260,9 @@ void serve(void) {
 		}
 
 		switch (req) {
-		case FSREQ_xxx:
-			serve_xxx(whom, (struct Fsreq_xxx *)REQVA);
+		case FSREQ_OPENAT:
+			//debugf("!!!!!");
+			serve_openat(whom, (struct Fsreq_openat *)REQVA);
 			break;
 		case FSREQ_OPEN:
 			serve_open(whom, (struct Fsreq_open *)REQVA);
