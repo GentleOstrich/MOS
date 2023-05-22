@@ -473,11 +473,11 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
 		printk("va: 0x%x is invalid in writing, the len is 0x%x\n", va, len);
 		return -E_INVAL;
 	}
-	if (pa >= 0x10000000 && pa + len <= 0x10000020 ||
-		pa >= 0x13000000 && pa + len <= 0x13004200 ||
-		pa >= 0x15000000 && pa + len <= 0x15000200) {
+	if ((pa >= 0x10000000 && pa + len <= 0x10000020) ||
+		(pa >= 0x13000000 && pa + len <= 0x13004200) ||
+		(pa >= 0x15000000 && pa + len <= 0x15000200)) {
 			u_int devva = pa + KSEG1;
-			memcpy(devva, va, len);
+			memcpy((void*)devva, (void*)va, len);
 		} else {
 		printk("pa: 0x%x is invalid in writing, the len is 0x%x\n", pa, len);
 		return -E_INVAL;
@@ -502,11 +502,11 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 		printk("va: 0x%x is invalid in reading, the len is 0x%x\n", va, len);
 		return -E_INVAL;
 	}
-	if (pa >= 0x10000000 && pa + len <= 0x10000020 ||
-		pa >= 0x13000000 && pa + len <= 0x13004200 ||
-		pa >= 0x15000000 && pa + len <= 0x15000200) {
+	if ((pa >= 0x10000000 && pa + len <= 0x10000020) ||
+		(pa >= 0x13000000 && pa + len <= 0x13004200) ||
+		(pa >= 0x15000000 && pa + len <= 0x15000200)) {
 		u_int devva = pa + KSEG1;
-		memcpy(va, devva, len);
+		memcpy((void*)va, (void*)devva, len);
 	} else {
 		printk("pa: 0x%x is invalid in reading, the len is 0x%x\n", pa, len);
 		return -E_INVAL;

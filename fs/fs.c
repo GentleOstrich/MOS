@@ -144,7 +144,8 @@ int map_block(u_int blockno) {
 	// Step 2: Alloc a page in permission 'PTE_D' via syscall.
 	// Hint: Use 'diskaddr' for the virtual address.
 	/* Exercise 5.7: Your code here. (2/5) */
-	syscall_mem_alloc(0, diskaddr(blockno), PTE_D);
+	int r = syscall_mem_alloc(0, diskaddr(blockno), PTE_D);
+	return r;
 }
 
 // Overview:
@@ -491,7 +492,6 @@ int file_dirty(struct File *f, u_int offset) {
 //  Return 0 on success, and set the pointer to the target file in `*file`.
 //  Return the underlying error if an error occurs.
 int dir_lookup(struct File *dir, char *name, struct File **file) {
-	int r;
 	// Step 1: Calculate the number of blocks in 'dir' via its size.
 	u_int nblock;
 	/* Exercise 5.8: Your code here. (1/3) */

@@ -237,7 +237,7 @@ struct File *create_file(struct File *dirf) {
 	// and return a pointer to the new block on 'disk'.
 	/* Exercise 5.5: Your code here. (3/3) *///这里错了 为什么？？
 	int bno = make_link_block(dirf, nblk++);
-
+	
 	return (struct File*)(disk + bno);
 }
 

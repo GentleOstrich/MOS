@@ -154,7 +154,6 @@ int envid2env(u_int envid, struct Env **penv, int checkperm) {
  *   You may use these macro definitions below: 'LIST_INIT', 'TAILQ_INIT', 'LIST_INSERT_HEAD'
  */
 void env_init(void) {
-	int i;
 	/* Step 1: Initialize 'env_free_list' with 'LIST_INIT' and 'env_sched_list' with
 	 * 'TAILQ_INIT'. */
 	/* Exercise 3.1: Your code here. (1/2) */
@@ -238,7 +237,6 @@ static int env_setup_vm(struct Env *e) {
  *     'env_user_tlb_mod_entry', 'env_runs'
  */
 int env_alloc(struct Env **new, u_int parent_id) {
-	int r;
 	struct Env *e;
 
 	/* Step 1: Get a free Env from 'env_free_list' 获取一个空闲的env*/ 
@@ -299,8 +297,6 @@ static int load_icode_mapper(void *data, u_long va, size_t offset, u_int perm, c
 			     size_t len) {
 	struct Env *env = (struct Env *)data;
 	struct Page *p;
-	int r;
-
 	/* Step 1: Allocate a page with 'page_alloc'. */
 	/* Exercise 3.5: Your code here. (1/2) */
 	page_alloc(&p);
