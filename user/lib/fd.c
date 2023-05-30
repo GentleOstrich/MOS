@@ -128,7 +128,7 @@ int dup(int oldfdnum, int newfdnum) {
 	ova = fd2data(oldfd);
 	nva = fd2data(newfd);
 	if ((r = syscall_mem_map(0, oldfd, 0, newfd, vpt[VPN(oldfd)] & (PTE_D | PTE_LIBRARY))) <
-	    1) {
+	    0) {
 		goto err;
 	}
 
