@@ -147,8 +147,9 @@ static int pipe_read(struct Fd *fd, void *vbuf, u_int n, u_int offset) {
 		while (p->p_rpos >= p->p_wpos) {
 			if (_pipe_is_closed(fd, p) || i > 0) {
 				return i;
+			} else {
+				syscall_yield();
 			}
-			syscall_yield();
 		}
 		rbuf[i] = p->p_buf[p->p_rpos % BY2PIPE];
 		p->p_rpos++;
@@ -188,8 +189,9 @@ static int pipe_write(struct Fd *fd, const void *vbuf, u_int n, u_int offset) {
 		while (p->p_wpos - p->p_rpos >= BY2PIPE) {
 			if (_pipe_is_closed(fd, p)) {
 				return 0;
+			} else {
+				syscall_yield();
 			}
-			syscall_yield();
 		}
 		p->p_buf[p->p_wpos % BY2PIPE] = wbuf[i];
 		p->p_wpos++;
