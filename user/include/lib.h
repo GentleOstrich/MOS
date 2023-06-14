@@ -128,8 +128,8 @@ void wirte_history(char *buf, int n);
 int read_history(char buf[128][128]);
 
 //curdir.c
-int getcwd(char* buf,size_t size);
-int chdir(const char* path);
+int getpwd(char *buf,size_t size);
+int chdir(const char *path);
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \

@@ -235,7 +235,7 @@ int read_insert(int fdnum, void *buf, u_int n, int i, int rear) {
 }
 
 
-int read_line(int fdnum, void *buf, u_int n){
+int read_line(int fdnum, void *buf, u_int n) {
 	
 	int r;
 	struct Dev *dev;
@@ -252,11 +252,11 @@ int read_line(int fdnum, void *buf, u_int n){
 
 	int i;
 	for (i = 0; i < n && i < r && ((char *)buf)[i] != '\n'; i++);
-	if(((char *)buf)[i] == '\n'){
+	if (((char *)buf)[i] == '\n') {
 		r = i + 1;
 	}
 	((char *)buf)[i] = '\0';
-	if(r > 0){
+	if (r > 0) {
 		fd->fd_offset += r;
 	}
 	((char *)buf)[r] = '\0';

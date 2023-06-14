@@ -3,22 +3,22 @@
 
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()"
-static int doBuiltInCmd(int argc, char**argv); 
+static int isCdorPwd(int argc, char**argv); 
 
-static int doBuiltInCmd(int argc, char**argv) {
-	if (strcmp(argv[0],"cd") == 0) {
+static int isCdorPwd(int argc, char**argv) {
+	if (strcmp(argv[0], "cd") == 0) {
 		if (argc != 2) {
-			user_panic("cd usage : cd path\n");
+			user_panic("cd : too few argv\n");
 		}
 		chdir(argv[1]);
 		return 1;
-	} else if (strcmp(argv[0],"pwd") == 0) {
+	} else if (strcmp(argv[0], "pwd") == 0) {
 		char buf[128];
 		if (argc != 1) {
-			user_panic("pwd usage : pwd\n");
+			user_panic("pwd : too many argv\n");
 		}
-		getcwd(buf,sizeof(buf));
-		printf("%s\n",buf);	
+		getpwd(buf, sizeof(buf));
+		printf("%s\n", buf);
 		return 1;
 	}
 	return 0;
@@ -199,9 +199,9 @@ void runcmd(char *s) {
 		return;
 	}
 	argv[argc] = 0;
-	if (doBuiltInCmd(argc,argv) != 0) {
+	if (isCdorPwd(argc, argv) != 0) {
 		return;
-	} 
+	}
 	int child = spawn(argv[0], argv);
 	close_all();
 	if (child >= 0) {
@@ -222,17 +222,12 @@ int history_cnt = 0;
 
 int read_history(char history_cmd[128][128]){
 	int index = ((history_cnt - 128) > 0) ? history_cnt - 128 : 0;
-	int i;
 	char buf[128];
 	int fd = open("/.history", O_RDONLY);
-	if(fd < 0){
+	if (fd < 0) {
 		return 0;
 	}
-	for(i = 0; i< index; i++){
-		debugf("\njump index\n");
-		read_line(fd, buf, 128);
-	}
-	for (i=index; i < history_cnt; i++) {
+	for (int i = index; i < history_cnt; i++) {
 		read_line(fd, buf, 128);
 		strcpy(history_cmd[i-index], buf);
 	}
@@ -241,10 +236,11 @@ int read_history(char history_cmd[128][128]){
 }
 
 void write_history(char* buf, int n) {
-	static int run_time = 0;
+	static int init = 1;
 	int fd, r;
-	if(run_time == 0){
+	if (init == 1) {
 		create("/.history", 0);
+		init = 0;
 	}
 	fd = open("/.history", O_RDWR | O_APPEND);
 	r = write(fd, buf, n);
@@ -257,7 +253,6 @@ void write_history(char* buf, int n) {
 	}
 	close(fd);
 	history_cnt += 1;
-	run_time++;
 }
 
 void readline(char *buf, u_int n) {
@@ -267,7 +262,6 @@ void readline(char *buf, u_int n) {
 	int sum = cnt;
 	int num = 0;
 	int move = 0; // 往左走了几步
-	char ch;
 	
 	for (int i = 0; i < n; i++) {
 		if ((r = read_insert(0, buf, 1, i, i)) != 1) {
@@ -296,7 +290,7 @@ void readline(char *buf, u_int n) {
 		}
 		// 下一条
 		if (i >= 2 && buf[i - 2] == 27 && buf[i - 1] == 91 && buf[i] == 66) {
-			if (cnt < sum - 1) {
+			if (cnt < sum) {
 				i -= 2;
 				for (i; i; --i) {
 					printf("\b \b");
@@ -307,14 +301,6 @@ void readline(char *buf, u_int n) {
 			} else if (cnt == sum) {
 				buf[i - 2] = buf[i - 1] = buf[i] = 0;
 				i = strlen(buf) - 1;
-			} else {
-				i -= 2;
-				for (i; i; --i) {
-					printf("\b \b");
-				}
-				cnt++;
-				buf[0] = 0;
-				i = -1; 
 			}
 			num = i + 1;
 		}
@@ -415,7 +401,7 @@ void readline(char *buf, u_int n) {
 	buf[0] = 0;
 }
 
-char buf[1024];
+char buf[MAXPATHLEN];
 
 void usage(void) {
 	debugf("usage: sh [-dix] [command-file]\n");

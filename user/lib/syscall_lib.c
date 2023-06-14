@@ -76,10 +76,10 @@ int syscall_read_dev(void *va, u_int dev, u_int len) {
 	return msyscall(SYS_read_dev, va, dev, len);
 }
 
-int syscall_write_curdir(char* copyingBuf, int maxsize) {
-	return msyscall(SYS_write_curdir, copyingBuf, maxsize);
+int syscall_write_curdir(char *buf, int len) {
+	return msyscall(SYS_write_curdir, buf, len);
 }
 
-int syscall_read_curdir(char* copiedBuf,int maxsize) {
-	return msyscall(SYS_read_curdir, copiedBuf, maxsize);
+int syscall_read_curdir(char *buf,int len) {
+	return msyscall(SYS_read_curdir, buf, len);
 }

@@ -261,8 +261,8 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	 */
 	e->env_user_tlb_mod_entry = 0; // for lab4
 	e->env_runs = 0;	       // for lab6
-	e->env_work_dir[0] = '/';
-	e->env_work_dir[1] = '\0';
+	e->env_cur_dir[0] = '/';
+	e->env_cur_dir[1] = '\0';
 	/* Exercise 3.4: Your code here. (3/4) */
 	if (asid_alloc(&(e->env_asid)) == 0) {
 		e->env_id = mkenvid(e);

@@ -9,8 +9,6 @@ void main(int argc, char** argv) {
 	}
 	int cnt = 1;
 	while ((r = read(fd, buf, 128)) != 0 ) {
-        debugf("%d", cnt);
-		debugf("\t%s\n", buf);
-		cnt++;
+		printf("%s\n", buf);
 	}
 }

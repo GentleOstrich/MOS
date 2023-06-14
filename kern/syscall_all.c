@@ -246,18 +246,13 @@ int sys_exofork(void) {
 	/* Step 1: Allocate a new env using 'env_alloc'. */
 	/* Exercise 4.9: Your code here. (1/4) */
 	try(env_alloc(&e, curenv->env_id));
-	
 	/* Step 2: Copy the current Trapframe below 'KSTACKTOP' to the new env's 'env_tf'. */
 	/* Exercise 4.9: Your code here. (2/4) */
 	e->env_tf = *((struct Trapframe *)KSTACKTOP - 1);
-	//memcpy((struct Trapframe*)(&(e->env_tf)), (struct Trapframe*)(KSTACKTOP) - 1, sizeof(struct Trapframe));
 	/* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
 	/* Exercise 4.9: Your code here. (3/4) */
 	e->env_tf.regs[2] = 0;
-	//printk("syscall: cur_env_id : %d\n", curenv->env_id);
-	//printk("syscall: work_dir : %s\n", curenv->env_work_dir);
-	memcpy(e->env_work_dir, curenv->env_work_dir, strlen(curenv->env_work_dir));
-	//printk("\n\n%s\n\n", e->env_work_dir);
+	memcpy(e->env_cur_dir, curenv->env_cur_dir, strlen(curenv->env_cur_dir));
 	/* Step 4: Set up the new env's 'env_status' and 'env_pri'.  */
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status = ENV_NOT_RUNNABLE;
@@ -518,36 +513,34 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
-int sys_write_curdir(char* copyingBuf, int maxsize) {
+int sys_write_curdir(char* buf, int len) {
 	int father_envid = curenv->env_parent_id;
 	struct Env *father_env;
 	try(envid2env(father_envid, &father_env, 0));
-	if (maxsize > 1024) {
+	if (len > 1024) {
 		return - 1;
 	}
 	int i;
-	for (i = 0; copyingBuf[i] != 0 && i < maxsize; ++i) {
-		father_env->env_work_dir[i] = copyingBuf[i];
+	for (i = 0; buf[i] != 0 && i < len; ++i) {
+		father_env->env_cur_dir[i] = buf[i];
 	}
-	//printk("writing cur is : %d work_dir is : %s\n", father_env->env_id, father_env->env_work_dir);
-	father_env->env_work_dir[i] = 0;
+	father_env->env_cur_dir[i] = 0;
 	return 0;
 }
 
-int sys_read_curdir(char * copiedBuf,int maxsize) {
+int sys_read_curdir(char *buf,int len) {
 	int father_envid = curenv->env_parent_id;
 	struct Env *father_env;
 	try(envid2env(father_envid, &father_env, 0));
 
 	int i ;
-	if (strlen(curenv->env_work_dir) > maxsize) {
+	if (strlen(curenv->env_cur_dir) > len) {
 		return -1;
 	}
-	for (i = 0; father_env->env_work_dir[i] != 0 && i < 1024; ++i) {
-		copiedBuf[i] = father_env->env_work_dir[i];
+	for (i = 0; father_env->env_cur_dir[i] != 0 && i < 1024; ++i) {
+		buf[i] = father_env->env_cur_dir[i];
 	}
-	//printk("reading cur is : %d curenv->env_work_dir : %s\n", father_env->env_id, father_env->env_work_dir);
-	copiedBuf[i] = 0;
+	buf[i] = 0;
 	return 0;
 }
 
