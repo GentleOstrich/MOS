@@ -23,11 +23,17 @@ int main(int argc, char **argv) {
 		cat(0, "<stdin>");
 	} else {
 		for (i = 1; i < argc; i++) {
-			f = open(argv[i], O_RDONLY);
+			char tmp[128];
+        	char t[2] = "/";
+        	int r = syscall_read_curdir(tmp, 128);
+     	   	memcpy(tmp + strlen(tmp), t, 1);
+    	    memcpy(tmp + strlen(tmp), argv[i], strlen(argv[i]));
+    		//debugf("touch: %s\n", tmp);
+			f = open(tmp, O_RDONLY);
 			if (f < 0) {
-				user_panic("can't open %s: %d", argv[i], f);
+				user_panic("can't open %s: %d", tmp, f);
 			} else {
-				cat(f, argv[i]);
+				cat(f, tmp);
 				close(f);
 			}
 		}

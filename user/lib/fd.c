@@ -196,6 +196,74 @@ int read(int fdnum, void *buf, u_int n) {
 	return r;
 }
 
+int read_insert(int fdnum, void *buf, u_int n, int i, int rear) {
+	int r;
+
+	struct Dev *dev;
+	struct Fd *fd;
+	
+	try(fd_lookup(fdnum, &fd));
+	try(dev_lookup(fd->fd_dev_id, &dev));
+	
+
+	// if (i < all) {
+	// 	debugf("===!!!!\n");
+	// 	memcpy(tmp, (buf + i), all - i);
+	// 	debugf("===%s\n", tmp);
+	// }
+	char tmp[128] = {0};
+	
+
+	memcpy(tmp, buf + rear, 128);
+
+	//debugf("\n%d %d\n", i, all);
+	//debugf("temp is : %s\n", tmp);
+
+	if ((fd->fd_omode & O_ACCMODE) == O_WRONLY) {
+    	return -E_INVAL;
+  	}
+	
+	r = dev->dev_read(fd, (buf + i), n, fd->fd_offset);
+	
+	if (r > 0) {
+		fd->fd_offset += r;
+	}
+
+	memcpy(buf + i + 1, tmp, 128);
+	
+	return r;
+}
+
+
+int read_line(int fdnum, void *buf, u_int n){
+	
+	int r;
+	struct Dev *dev;
+	struct Fd *fd;
+
+	try(fd_lookup(fdnum, &fd));
+	try(dev_lookup(fd->fd_dev_id, &dev));
+	
+	if ((fd->fd_omode & O_ACCMODE) == O_WRONLY) {
+    	return -E_INVAL;
+  	}
+
+	r = dev->dev_read(fd, buf, n, fd->fd_offset);
+
+	int i;
+	for (i = 0; i < n && i < r && ((char *)buf)[i] != '\n'; i++);
+	if(((char *)buf)[i] == '\n'){
+		r = i + 1;
+	}
+	((char *)buf)[i] = '\0';
+	if(r > 0){
+		fd->fd_offset += r;
+	}
+	((char *)buf)[r] = '\0';
+	return r;
+}
+
+
 int readn(int fdnum, void *buf, u_int n) {
 	int m, tot;
 

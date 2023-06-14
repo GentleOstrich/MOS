@@ -254,6 +254,10 @@ int sys_exofork(void) {
 	/* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
 	/* Exercise 4.9: Your code here. (3/4) */
 	e->env_tf.regs[2] = 0;
+	//printk("syscall: cur_env_id : %d\n", curenv->env_id);
+	//printk("syscall: work_dir : %s\n", curenv->env_work_dir);
+	memcpy(e->env_work_dir, curenv->env_work_dir, strlen(curenv->env_work_dir));
+	//printk("\n\n%s\n\n", e->env_work_dir);
 	/* Step 4: Set up the new env's 'env_status' and 'env_pri'.  */
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status = ENV_NOT_RUNNABLE;
@@ -514,6 +518,39 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+int sys_write_curdir(char* copyingBuf, int maxsize) {
+	int father_envid = curenv->env_parent_id;
+	struct Env *father_env;
+	try(envid2env(father_envid, &father_env, 0));
+	if (maxsize > 1024) {
+		return - 1;
+	}
+	int i;
+	for (i = 0; copyingBuf[i] != 0 && i < maxsize; ++i) {
+		father_env->env_work_dir[i] = copyingBuf[i];
+	}
+	//printk("writing cur is : %d work_dir is : %s\n", father_env->env_id, father_env->env_work_dir);
+	father_env->env_work_dir[i] = 0;
+	return 0;
+}
+
+int sys_read_curdir(char * copiedBuf,int maxsize) {
+	int father_envid = curenv->env_parent_id;
+	struct Env *father_env;
+	try(envid2env(father_envid, &father_env, 0));
+
+	int i ;
+	if (strlen(curenv->env_work_dir) > maxsize) {
+		return -1;
+	}
+	for (i = 0; father_env->env_work_dir[i] != 0 && i < 1024; ++i) {
+		copiedBuf[i] = father_env->env_work_dir[i];
+	}
+	//printk("reading cur is : %d curenv->env_work_dir : %s\n", father_env->env_id, father_env->env_work_dir);
+	copiedBuf[i] = 0;
+	return 0;
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -533,6 +570,8 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+	[SYS_read_curdir] = sys_read_curdir,
+	[SYS_write_curdir] = sys_write_curdir,
 };
 
 /* Overview:

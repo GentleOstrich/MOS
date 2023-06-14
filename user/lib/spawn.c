@@ -105,7 +105,14 @@ int spawn(char *prog, char **argv) {
 	// Step 1: Open the file 'prog' (the path of the program).
 	// Return the error if 'open' fails.
 	int fd;
-	if ((fd = open(prog, O_RDONLY)) < 0) {
+	char real_prog[128];
+	strcpy(real_prog, prog);
+	int len = strlen(real_prog);
+	if (real_prog[len - 1] != 'b' || real_prog[len - 2] != '.') {
+		strcpy(real_prog + len, ".b");
+	}
+
+	if ((fd = open(real_prog, O_RDONLY)) < 0) {
 		return fd;
 	}
 	

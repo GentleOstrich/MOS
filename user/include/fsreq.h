@@ -13,10 +13,11 @@
 #define FSREQ_DIRTY 5
 #define FSREQ_REMOVE 6
 #define FSREQ_SYNC 7
-#define FSREQ_xxx  8
+#define FSREQ_CREATE  8
 
-struct Fsreq_xxx {
+struct Fsreq_create {
 	char req_path[MAXPATHLEN];
+	int req_isdir;
 };
 
 struct Fsreq_open {

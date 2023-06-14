@@ -45,6 +45,11 @@ int open(const char *path, int mode) {
 	ffd = (struct Filefd *)fd;
 	fileid = ffd->f_fileid;
 	size = ffd->f_file.f_size;
+	
+	if((mode & O_APPEND) != 0){
+		ffd->f_fd.fd_offset = ffd->f_file.f_size;
+	}
+
 	// Step 4: Alloc pages and map the file content using 'fsipc_map'.
 	for (int i = 0; i < size; i += BY2PG) {
 		/* Exercise 5.9: Your code here. (4/5) */
@@ -256,7 +261,7 @@ int sync(void) {
 }
 
 
-int xxx(void) {
-	int r = fsipc_xxx();
+int create(char* path, int isdir) {
+	int r = fsipc_create(path, isdir);
 	return r;
 }

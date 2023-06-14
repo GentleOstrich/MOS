@@ -3,6 +3,26 @@
 
 #define WHITESPACE " \t\r\n"
 #define SYMBOLS "<|>&;()"
+static int doBuiltInCmd(int argc, char**argv); 
+
+static int doBuiltInCmd(int argc, char**argv) {
+	if (strcmp(argv[0],"cd") == 0) {
+		if (argc != 2) {
+			user_panic("cd usage : cd path\n");
+		}
+		chdir(argv[1]);
+		return 1;
+	} else if (strcmp(argv[0],"pwd") == 0) {
+		char buf[128];
+		if (argc != 1) {
+			user_panic("pwd usage : pwd\n");
+		}
+		getcwd(buf,sizeof(buf));
+		printf("%s\n",buf);	
+		return 1;
+	}
+	return 0;
+}
 
 /* Overview:
  *   Parse the next token from the string at s.
@@ -22,6 +42,7 @@
 int _gettoken(char *s, char **p1, char **p2) {
 	*p1 = 0;
 	*p2 = 0;
+	int flag = 0;
 	if (s == 0) {
 		return 0;
 	}
@@ -32,8 +53,11 @@ int _gettoken(char *s, char **p1, char **p2) {
 	if (*s == 0) {
 		return 0;
 	}
-
-	if (strchr(SYMBOLS, *s)) {
+	if (*s == '\"') {
+		flag = 1;
+		strcpy(s, s + 1);
+	}
+	if (strchr(SYMBOLS, *s) && flag == 0) {
 		int t = *s;
 		*p1 = s;
 		*s++ = 0;
@@ -42,8 +66,13 @@ int _gettoken(char *s, char **p1, char **p2) {
 	}
 
 	*p1 = s;
-	while (*s && !strchr(WHITESPACE SYMBOLS, *s)) {
-		s++;
+	while (*s && (!strchr(WHITESPACE SYMBOLS, *s) || flag == 1)) {
+		if (*s == '\"') {
+			flag = 0;
+			strcpy(s, s + 1);
+		} else {
+			s++;
+		}
 	}
 	*p2 = s;
 	return 'w';
@@ -65,13 +94,26 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
-int parsecmd(char **argv, int *rightpipe) {
+int parsecmd(char **argv, int *rightpipe, int *running) {
 	int argc = 0;
 	while (1) {
 		char *t;
 		int fd, r;
 		int c = gettoken(0, &t);
 		switch (c) {
+		case ';':
+			*running = fork();
+			if (*running == 0) {
+				return parsecmd(argv, rightpipe, running);
+			} else {
+				return argc;
+			}
+			break;
+		case '&':
+			argv[argc] = 0;
+			int child = spawn(argv[0], argv);
+			argc = 0;
+			break;
 		case 0:
 			return argc;
 		case 'w':
@@ -131,7 +173,7 @@ int parsecmd(char **argv, int *rightpipe) {
 				dup(p[0], 0);
 				close(p[0]);
 				close(p[1]);
-				return parsecmd(argv, rightpipe);
+				return parsecmd(argv, rightpipe, running);
 			}  else if (*rightpipe > 0) {
 				dup(p[1], 1);
 				close(p[1]);
@@ -139,7 +181,6 @@ int parsecmd(char **argv, int *rightpipe) {
 				return argc;
 			}
 			//user_panic("| not implemented");
-
 			break;
 		}
 	}
@@ -149,15 +190,18 @@ int parsecmd(char **argv, int *rightpipe) {
 
 void runcmd(char *s) {
 	gettoken(s, 0);
-
+	int r;
 	char *argv[MAXARGS];
 	int rightpipe = 0;
-	int argc = parsecmd(argv, &rightpipe);
+	int running;
+	int argc = parsecmd(argv, &rightpipe, &running);
 	if (argc == 0) {
 		return;
 	}
 	argv[argc] = 0;
-
+	if (doBuiltInCmd(argc,argv) != 0) {
+		return;
+	} 
 	int child = spawn(argv[0], argv);
 	close_all();
 	if (child >= 0) {
@@ -168,30 +212,199 @@ void runcmd(char *s) {
 	if (rightpipe) {
 		wait(rightpipe);
 	}
+	if (running) {
+		wait(running);
+	}
 	exit();
+}
+
+int history_cnt = 0;
+
+int read_history(char history_cmd[128][128]){
+	int index = ((history_cnt - 128) > 0) ? history_cnt - 128 : 0;
+	int i;
+	char buf[128];
+	int fd = open("/.history", O_RDONLY);
+	if(fd < 0){
+		return 0;
+	}
+	for(i = 0; i< index; i++){
+		debugf("\njump index\n");
+		read_line(fd, buf, 128);
+	}
+	for (i=index; i < history_cnt; i++) {
+		read_line(fd, buf, 128);
+		strcpy(history_cmd[i-index], buf);
+	}
+	close(fd);
+	return history_cnt - index;
+}
+
+void write_history(char* buf, int n) {
+	static int run_time = 0;
+	int fd, r;
+	if(run_time == 0){
+		create("/.history", 0);
+	}
+	fd = open("/.history", O_RDWR | O_APPEND);
+	r = write(fd, buf, n);
+	if (r < n) {
+		debugf("\nerror in write_history\n");
+	}
+	r = write(fd, "\n", 1);
+	if (r < 1) {
+		debugf("\nerror in write_history\n ");
+	}
+	close(fd);
+	history_cnt += 1;
+	run_time++;
 }
 
 void readline(char *buf, u_int n) {
 	int r;
+	char historys[128][128];
+	int cnt = read_history(historys);
+	int sum = cnt;
+	int num = 0;
+	int move = 0; // 往左走了几步
+	char ch;
+	
 	for (int i = 0; i < n; i++) {
-		if ((r = read(0, buf + i, 1)) != 1) {
+		if ((r = read_insert(0, buf, 1, i, i)) != 1) {
 			if (r < 0) {
 				debugf("read error: %d\n", r);
 			}
 			exit();
 		}
-		if (buf[i] == '\b' || buf[i] == 0x7f) {
-			if (i > 0) {
-				i -= 2;
+		
+		num++;
+		// 上一条
+		if (i >= 2 && buf[i - 2] == 27 && buf[i - 1] == 91 && buf[i] == 65) {
+			printf("%c%c%c", 27, 91, 66);
+			i -= 2;
+			for (i; i; --i) {
+				printf("\b \b");
+			}
+			if (cnt > 0) {
+				strcpy(buf, historys[--cnt]);
 			} else {
+				strcpy(buf, historys[cnt]);
+			}
+			printf("%s", buf);
+			i = strlen(buf) - 1;
+			num = i + 1;
+		}
+		// 下一条
+		if (i >= 2 && buf[i - 2] == 27 && buf[i - 1] == 91 && buf[i] == 66) {
+			if (cnt < sum - 1) {
+				i -= 2;
+				for (i; i; --i) {
+					printf("\b \b");
+				}
+				strcpy(buf, historys[++cnt]);
+				printf("%s", buf);
+				i = strlen(buf) - 1;
+			} else if (cnt == sum) {
+				buf[i - 2] = buf[i - 1] = buf[i] = 0;
+				i = strlen(buf) - 1;
+			} else {
+				i -= 2;
+				for (i; i; --i) {
+					printf("\b \b");
+				}
+				cnt++;
+				buf[0] = 0;
+				i = -1; 
+			}
+			num = i + 1;
+		}
+		// 左移   
+		if (i >= 2 && buf[i - 2] == 27 && buf[i - 1] == 91 && buf[i] == 68) {
+			num -= 3;
+			printf("%c%c%c", 27, 91, 67);
+			for (int k = 0; k < move; ++k) {
+				printf("%c%c%c", 27, 91, 67);
+			}
+			char c = buf[num];
+			buf[num] = 0;
+			for (int j = 0; j < strlen(buf); ++j) {
+			 	printf("\b \b");
+			}  
+			buf[num] = c;
+			memcpy(buf + i - 2, buf + i + 1, 128);
+			buf[num] = 0;
+			printf("%s", buf);
+			i -= 4;
+			if (i < 0) {
 				i = -1;
 			}
-			if (buf[i] != '\b') {
-				printf("\b");
+			if (move < num) {
+				move++;
+			}
+			for (int k = 0; k < move; ++k) {
+				printf("%c%c%c", 27, 91, 68);
+			}
+			continue;
+		}
+		// 右移
+		if (i >= 2 && buf[i - 2] == 27 && buf[i - 1] == 91 && buf[i] == 67) {
+			printf("%c%c%c", 27, 91, 68);
+			if (move > 0) {
+				num -= 3;
+				for (int k = 0; k < move; ++k) {
+					printf("%c%c%c", 27, 91, 67);
+				}
+				char c = buf[num];
+				buf[num] = 0;
+				for (int j = 0; j < strlen(buf); ++j) {
+					printf("\b \b");
+				}
+				buf[num] = c;
+				memcpy(buf + i - 2, buf + i + 1, 128);
+				buf[num] = 0;
+				printf("%s", buf);
+				i -= 2;
+				if (i < 0) {
+					i = -1;
+				}
+				if (move > 0) {
+					move--;
+				}
+				for (int k = 0; k < move; ++k) {
+					printf("%c%c%c", 27, 91, 68);
+				}
+			} else {
+				num -= 3;
+				i -= 3;
+				if (i < 0) {
+					i = -1;
+				}
+			}
+			continue;
+		}
+		if (buf[i] == '\b' || buf[i] == 0x7f) {
+			if (i > 0) {
+				buf[i] = 0;
+				for (int j = 0; j < strlen(buf); ++j) {
+					printf("\b \b");
+				}
+				buf[i - 1] = 0;
+				memcpy(buf + i - 1, buf + i + 1, 128);
+				i -= 2;
+				num -= 2;
+				buf[num] = 0;
+				printf("%s", buf);
+			} else {
+				buf[i] = 0;
+				i = -1;
+				num = 0;
 			}
 		}
 		if (buf[i] == '\r' || buf[i] == '\n') {
-			buf[i] = 0;
+			num -= 1;
+			memcpy(buf + i, buf + i + 1, 128);
+			buf[num] = 0;
+			buf[num + 1] = '\n';
 			return;
 		}
 	}
@@ -245,7 +458,7 @@ int main(int argc, char **argv) {
 			printf("\n$ ");
 		}
 		readline(buf, sizeof buf);
-
+		write_history(buf, strlen(buf));
 		if (buf[0] == '#') {
 			continue;
 		}

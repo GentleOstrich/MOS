@@ -100,11 +100,13 @@ int fsipc_dirty(u_int, u_int);
 int fsipc_remove(const char *);
 int fsipc_sync(void);
 int fsipc_incref(u_int);
-int fsipc_xxx(void);
+int fsipc_create(char *path, int isdir);
 
 // fd.c
 int close(int fd);
 int read(int fd, void *buf, u_int nbytes);
+int read_line(int fd, void *buf, u_int nbytes);
+int read_insert(int fd, void *buf, u_int nbytes, int i, int all);
 int write(int fd, const void *buf, u_int nbytes);
 int seek(int fd, u_int offset);
 void close_all(void);
@@ -119,7 +121,15 @@ int read_map(int fd, u_int offset, void **blk);
 int remove(const char *path);
 int ftruncate(int fd, u_int size);
 int sync(void);
-int xxx(void);
+int create(char *path, int isdir);
+
+//history.c
+void wirte_history(char *buf, int n);
+int read_history(char buf[128][128]);
+
+//curdir.c
+int getcwd(char* buf,size_t size);
+int chdir(const char* path);
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \
@@ -132,6 +142,7 @@ int xxx(void);
 #define O_WRONLY 0x0001	 /* open for writing only */
 #define O_RDWR 0x0002	 /* open for reading and writing */
 #define O_ACCMODE 0x0003 /* mask for above modes */
+#define O_APPEND	0x0004
 
 // Unimplemented open modes
 #define O_CREAT 0x0100 /* create if nonexistent */

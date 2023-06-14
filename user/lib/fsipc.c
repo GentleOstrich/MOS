@@ -26,11 +26,16 @@ static int fsipc(u_int type, void *fsreq, void *dstva, u_int *perm) {
 	return ipc_recv(&whom, dstva, perm);
 }
 
-int fsipc_xxx(void) {
-	struct Fsreq_xxx *req; 
-	req = (struct Fsreq_xxx *)fsipcbuf;
-
-	return fsipc(FSREQ_xxx, req, 0, 0);
+int fsipc_create(char* path, int isdir) {
+	u_int perm;
+	struct Fsreq_create *req; 
+	req = (struct Fsreq_create *)fsipcbuf;
+	if (strlen(path) >= MAXPATHLEN) {
+		return -E_BAD_PATH;
+	}
+	strcpy((char *)req->req_path, path);
+	req->req_isdir = isdir;
+	return fsipc(FSREQ_CREATE, req, 0, 0);
 }
 
 
