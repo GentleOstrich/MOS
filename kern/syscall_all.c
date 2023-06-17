@@ -252,7 +252,13 @@ int sys_exofork(void) {
 	/* Step 3: Set the new env's 'env_tf.regs[2]' to 0 to indicate the return value in child. */
 	/* Exercise 4.9: Your code here. (3/4) */
 	e->env_tf.regs[2] = 0;
-	memcpy(e->env_cur_dir, curenv->env_cur_dir, strlen(curenv->env_cur_dir));
+	//printk("exo : %d %d %s %d\n", curenv->env_id, e->env_id, curenv->env_cur_dir, strlen(curenv->env_cur_dir));
+	int len = strlen(curenv->env_cur_dir);
+	for (int i = 0; i < len; ++i) {
+		e->env_cur_dir[i] = curenv->env_cur_dir[i];
+	}
+	e->env_cur_dir[len] = 0;
+	//printk("exo : %d %d %s\n", curenv->env_id, e->env_id, e->env_cur_dir);
 	/* Step 4: Set up the new env's 'env_status' and 'env_pri'.  */
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status = ENV_NOT_RUNNABLE;
@@ -525,6 +531,7 @@ int sys_write_curdir(char* buf, int len) {
 		father_env->env_cur_dir[i] = buf[i];
 	}
 	father_env->env_cur_dir[i] = 0;
+	//printk("write father: %d %s, son: %d\n", father_envid, father_env->env_cur_dir, curenv);
 	return 0;
 }
 
@@ -541,6 +548,7 @@ int sys_read_curdir(char *buf,int len) {
 		buf[i] = father_env->env_cur_dir[i];
 	}
 	buf[i] = 0;
+	//printk("read father: %d %s, son: %d\n", father_envid, buf, curenv);
 	return 0;
 }
 

@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
 	if (argc == 0) {
 		char buf[128];
 		syscall_read_curdir(buf, sizeof(buf));
+		//debugf("ls : %s\n", buf);
 		ls(buf, "");
 	} else {
 		for (i = 0; i < argc; i++) {
